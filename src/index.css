@@ -10,8 +10,6 @@
 body {
   font-family: 'Patrick Hand', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: #f0f0f0;
-  font-family: 'Caveat', cursive;
-  background: #ddd8cf;
   background-image: radial-gradient(circle, #b8b0a4 1px, transparent 1px);
   background-size: 22px 22px;
   min-height: 100vh;
@@ -46,12 +44,12 @@ button {
   cursor: pointer;
   border: none;
   outline: none;
-  font-family: 'Caveat', cursive;
+  font-family: 'Patrick Hand';
 }
 
 input, textarea {
   outline: none;
-  font-family: 'Caveat', cursive;
+  font-family: 'Patrick Hand';
 }
 
 a {
