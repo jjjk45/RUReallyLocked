@@ -1,14 +1,13 @@
 const BADGES = [
-  { id: 'week', emoji: '🔥', label: '7-Day Streak', desc: 'One full week!', required: 7 },
-  { id: 'twoweek', emoji: '⚡', label: '14-Day Streak', desc: 'Two weeks strong', required: 14 },
-  { id: 'month', emoji: '💎', label: '30-Day Streak', desc: 'A whole month!', required: 30 },
-  { id: 'partner', emoji: '🏆', label: '60-Day Partner', desc: 'Full partnership complete', required: 60 },
+  { id: 'week',    label: '7-day streak',     sub: 'one full week',          required: 7  },
+  { id: 'twoweek', label: '14-day streak',    sub: 'two weeks strong',       required: 14 },
+  { id: 'month',   label: '30-day streak',    sub: 'a whole month',          required: 30 },
+  { id: 'partner', label: '60-day partner',   sub: 'full partnership done',  required: 60 },
 ]
 
 export default function BadgeDisplay({ streak = 5 }) {
   return (
     <div style={styles.wrap}>
-      <h3 style={styles.title}>Badges</h3>
       <div style={styles.row}>
         {BADGES.map(b => {
           const earned = streak >= b.required
@@ -16,17 +15,17 @@ export default function BadgeDisplay({ streak = 5 }) {
             <div
               key={b.id}
               style={{ ...styles.badge, ...(earned ? styles.badgeEarned : styles.badgeLocked) }}
-              title={earned ? b.label : `Locked — reach ${b.required}-day streak`}
+              title={earned ? b.label : `locked — reach ${b.required}-day streak`}
             >
-              <span style={{ fontSize: 26, filter: earned ? 'none' : 'grayscale(1)', opacity: earned ? 1 : 0.4 }}>
-                {b.emoji}
-              </span>
-              <span style={{ ...styles.badgeLabel, color: earned ? '#1a1a1a' : '#bbb' }}>
+              <div style={{ ...styles.stampCircle, ...(earned ? styles.stampEarned : styles.stampLocked) }}>
+                <span style={styles.stampNum}>{b.required}d</span>
+              </div>
+              <span style={{ ...styles.badgeLabel, color: earned ? '#2d2416' : '#c8bfb0' }}>
                 {b.label}
               </span>
-              {!earned && (
-                <span style={styles.lockOverlay}>🔒 {b.required}d</span>
-              )}
+              <span style={{ ...styles.badgeSub, color: earned ? '#9b8c7e' : '#d8d0c4' }}>
+                {earned ? b.sub : 'locked'}
+              </span>
             </div>
           )
         })}
@@ -39,50 +38,63 @@ const styles = {
   wrap: {
     padding: '4px 0',
   },
-  title: {
-    fontSize: 15,
-    fontWeight: 700,
-    color: '#1a1a1a',
-    marginBottom: 12,
-  },
   row: {
     display: 'flex',
-    gap: 10,
+    gap: 12,
     overflowX: 'auto',
-    paddingBottom: 4,
+    paddingBottom: 6,
   },
   badge: {
     flexShrink: 0,
-    width: 80,
+    width: 100,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: 6,
-    padding: '14px 8px',
-    borderRadius: 14,
-    position: 'relative',
-    border: '2px solid transparent',
-    transition: 'all 0.2s',
+    gap: 8,
+    padding: '16px 8px',
+    border: '1px solid transparent',
+    borderRadius: 2,
   },
   badgeEarned: {
-    background: 'linear-gradient(135deg, #fff5f7, #ffe0e6)',
-    border: '2px solid #ffccd5',
-    boxShadow: '0 2px 12px rgba(204,0,51,0.1)',
+    background: '#fdf9f3',
+    border: '1px solid #e0d8cc',
+    borderTop: '3px solid #8b1a2e',
   },
   badgeLocked: {
-    background: '#f8f8f8',
-    border: '2px solid #f0f0f0',
+    background: '#f5f3ef',
+    border: '1px solid #ece8e0',
+  },
+  stampCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stampEarned: {
+    border: '2.5px solid #8b1a2e',
+    background: '#faf7f2',
+  },
+  stampLocked: {
+    border: '2px dashed #d8d0c4',
+    background: 'transparent',
+  },
+  stampNum: {
+    fontSize: 18,
+    fontWeight: 700,
+    color: 'inherit',
+    fontFamily: 'Caveat, cursive',
   },
   badgeLabel: {
-    fontSize: 10,
+    fontSize: 13,
     fontWeight: 700,
     textAlign: 'center',
     lineHeight: 1.3,
-    letterSpacing: '0.2px',
   },
-  lockOverlay: {
-    fontSize: 9,
-    color: '#ccc',
-    fontWeight: 600,
+  badgeSub: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    textAlign: 'center',
   },
 }

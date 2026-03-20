@@ -15,50 +15,69 @@ export default function Login() {
 
   return (
     <div style={styles.screen}>
-      <div style={styles.top}>
-        <div style={styles.logoWrap}>
-          <span style={styles.logoEmoji}>🔒</span>
+      <div style={styles.content}>
+
+        <div style={styles.coverSection}>
+          <div style={styles.coverLabel}>ACCOUNTABILITY JOURNAL</div>
+          <h1 style={styles.appName}>RUrllyLocked?</h1>
+          <div style={styles.accentBar} />
+          <p style={styles.tagline}>your rutgers accountability partner system</p>
+          <div style={styles.stampWrap}>
+            <div style={styles.stamp}>est. 2025</div>
+          </div>
         </div>
-        <h1 style={styles.appName}>RUrllyLocked?</h1>
-        <p style={styles.tagline}>Your Rutgers accountability partner</p>
+
+        <div style={styles.divider}>
+          <span style={styles.dividerBullet}>→</span>
+          <span style={styles.dividerText}>sign in to your journal</span>
+          <div style={styles.dividerLine} />
+        </div>
+
+        <form style={styles.form} onSubmit={handleLogin}>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>email</label>
+            <input
+              style={styles.input}
+              type="email"
+              placeholder="you@rutgers.edu"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+            />
+            <div style={styles.inputLine} />
+          </div>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>password</label>
+            <input
+              style={styles.input}
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+            />
+            <div style={styles.inputLine} />
+          </div>
+
+          <button style={{ ...styles.btn, opacity: loading ? 0.6 : 1 }} type="submit" disabled={loading}>
+            {loading ? 'opening journal...' : '→ open journal'}
+          </button>
+        </form>
+
+        <p style={styles.switchText}>
+          new here?{' '}
+          <Link to="/signup" style={styles.link}>start a new journal</Link>
+        </p>
+
+        <div style={styles.decorLines}>
+          <div style={styles.decorLine} />
+          <div style={styles.decorLine} />
+          <div style={styles.decorLine} />
+        </div>
       </div>
 
-      <form style={styles.form} onSubmit={handleLogin}>
-        <div style={styles.inputGroup}>
-          <label style={styles.label}>Email</label>
-          <input
-            style={styles.input}
-            type="email"
-            placeholder="you@rutgers.edu"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <div style={styles.inputGroup}>
-          <label style={styles.label}>Password</label>
-          <input
-            style={styles.input}
-            type="password"
-            placeholder="Enter Password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-          />
-        </div>
-
-        <button style={{ ...styles.btn, opacity: loading ? 0.7 : 1 }} type="submit" disabled={loading}>
-          {loading ? 'Logging in...' : 'Log In'}
-        </button>
-      </form>
-
-      <p style={styles.switchText}>
-        Don't have an account?{' '}
-        <Link to="/signup" style={styles.link}>Sign up</Link>
-      </p>
-
-      <div style={styles.rutgersBar}>
-        <span style={styles.rutgersText}>THE STATE UNIVERSITY OF NEW JERSEY</span>
+      <div style={styles.footer}>
+        <span style={styles.footerText}>rutgers university · new brunswick, nj</span>
       </div>
     </div>
   )
@@ -67,105 +86,160 @@ export default function Login() {
 const styles = {
   screen: {
     minHeight: '100vh',
+    background: '#faf7f2',
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'center',
-    padding: '0 28px',
-    background: 'linear-gradient(160deg, #CC0033 0%, #8B0022 50%, #1a1a2e 100%)',
+    paddingLeft: 6,
   },
-  top: {
+  content: {
+    flex: 1,
+    padding: '56px 52px 40px',
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'center',
-    paddingTop: 72,
-    paddingBottom: 48,
+    position: 'relative',
   },
-  logoWrap: {
-    width: 80,
-    height: 80,
-    borderRadius: '50%',
-    background: 'rgba(255,255,255,0.2)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-    backdropFilter: 'blur(10px)',
-    border: '2px solid rgba(255,255,255,0.3)',
+  coverSection: {
+    marginBottom: 44,
   },
-  logoEmoji: {
-    fontSize: 36,
+  coverLabel: {
+    fontSize: 11,
+    color: '#9b8c7e',
+    letterSpacing: '2.5px',
+    fontFamily: '-apple-system, sans-serif',
+    fontWeight: 600,
+    textTransform: 'uppercase',
+    marginBottom: 10,
   },
   appName: {
-    color: '#fff',
-    fontSize: 32,
-    fontWeight: 800,
-    letterSpacing: '-0.5px',
-    marginBottom: 8,
+    color: '#2d2416',
+    fontSize: 52,
+    fontWeight: 700,
+    lineHeight: 1.05,
+    marginBottom: 14,
+  },
+  accentBar: {
+    width: 60,
+    height: 3,
+    background: '#8b1a2e',
+    marginBottom: 12,
   },
   tagline: {
-    color: 'rgba(255,255,255,0.75)',
-    fontSize: 15,
-    fontWeight: 400,
+    color: '#6b5d4e',
+    fontSize: 20,
+    fontStyle: 'italic',
+    marginBottom: 20,
+  },
+  stampWrap: {
+    display: 'inline-block',
+  },
+  stamp: {
+    display: 'inline-block',
+    fontSize: 13,
+    color: '#9b8c7e',
+    fontFamily: '-apple-system, sans-serif',
+    border: '1.5px solid #c8bfb0',
+    padding: '3px 12px',
+    borderRadius: 2,
+    letterSpacing: '1px',
+  },
+  divider: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 32,
+  },
+  dividerBullet: {
+    color: '#8b1a2e',
+    fontSize: 22,
+    fontWeight: 700,
+    flexShrink: 0,
+  },
+  dividerText: {
+    color: '#2d2416',
+    fontSize: 20,
+    fontStyle: 'italic',
+    flexShrink: 0,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    background: '#e0d8cc',
   },
   form: {
-    width: '100%',
     display: 'flex',
     flexDirection: 'column',
-    gap: 16,
+    gap: 28,
+    marginBottom: 28,
+    maxWidth: 420,
   },
   inputGroup: {
     display: 'flex',
     flexDirection: 'column',
-    gap: 6,
+    gap: 4,
   },
   label: {
-    color: 'rgba(255,255,255,0.85)',
-    fontSize: 13,
-    fontWeight: 600,
-    letterSpacing: '0.5px',
-    textTransform: 'uppercase',
+    color: '#8b1a2e',
+    fontSize: 16,
+    fontStyle: 'italic',
+    marginBottom: 2,
   },
   input: {
     width: '100%',
-    padding: '14px 16px',
-    borderRadius: 12,
-    border: '1.5px solid rgba(255,255,255,0.2)',
-    background: 'rgba(255,255,255,0.12)',
-    color: '#fff',
-    fontSize: 16,
-    backdropFilter: 'blur(10px)',
+    padding: '6px 0',
+    border: 'none',
+    background: 'transparent',
+    color: '#2d2416',
+    fontSize: 24,
+  },
+  inputLine: {
+    width: '100%',
+    height: 1.5,
+    background: '#c8bfb0',
   },
   btn: {
+    alignSelf: 'flex-start',
     marginTop: 8,
-    width: '100%',
-    padding: '16px',
-    borderRadius: 14,
-    background: '#fff',
-    color: '#CC0033',
-    fontSize: 17,
+    padding: '10px 32px',
+    border: '2px solid #2d2416',
+    background: '#2d2416',
+    color: '#faf7f2',
+    fontSize: 22,
     fontWeight: 700,
-    letterSpacing: '0.2px',
+    borderRadius: 2,
     transition: 'opacity 0.2s',
+    cursor: 'pointer',
   },
   switchText: {
-    color: 'rgba(255,255,255,0.7)',
-    fontSize: 14,
-    marginTop: 24,
+    color: '#6b5d4e',
+    fontSize: 18,
   },
   link: {
-    color: '#fff',
+    color: '#8b1a2e',
     fontWeight: 700,
   },
-  rutgersBar: {
+  decorLines: {
     position: 'absolute',
-    bottom: 24,
+    bottom: 52,
+    right: 52,
     display: 'flex',
-    alignItems: 'center',
+    flexDirection: 'column',
+    gap: 10,
+    opacity: 0.35,
   },
-  rutgersText: {
-    color: 'rgba(255,255,255,0.35)',
-    fontSize: 10,
-    fontWeight: 600,
+  decorLine: {
+    width: 72,
+    height: 1,
+    background: '#c8bfb0',
+  },
+  footer: {
+    padding: '14px 52px',
+    borderTop: '1px solid #e0d8cc',
+  },
+  footerText: {
+    fontSize: 11,
+    color: '#9b8c7e',
+    fontFamily: '-apple-system, sans-serif',
     letterSpacing: '1.5px',
+    textTransform: 'uppercase',
   },
 }

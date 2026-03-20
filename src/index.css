@@ -5,33 +5,48 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #f0f0f0;
+  font-family: 'Caveat', cursive;
+  background: #ddd8cf;
+  background-image: radial-gradient(circle, #b8b0a4 1px, transparent 1px);
+  background-size: 22px 22px;
   min-height: 100vh;
   display: flex;
   justify-content: center;
+  align-items: flex-start;
 }
 
 #root {
   width: 100%;
-  max-width: 430px;
+  max-width: 720px;
   min-height: 100vh;
-  background: #fff;
+  background: #faf7f2;
   position: relative;
   overflow-x: hidden;
-  box-shadow: 0 0 40px rgba(0,0,0,0.15);
+  box-shadow: -4px 0 0 #8b1a2e, 4px 0 40px rgba(0,0,0,0.18), -2px 0 40px rgba(0,0,0,0.12);
+}
+
+/* Left spine */
+#root::before {
+  content: '';
+  position: fixed;
+  left: calc(50% - 360px);
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  background: #8b1a2e;
+  z-index: 100;
 }
 
 button {
   cursor: pointer;
   border: none;
   outline: none;
-  font-family: inherit;
+  font-family: 'Caveat', cursive;
 }
 
-input {
+input, textarea {
   outline: none;
-  font-family: inherit;
+  font-family: 'Caveat', cursive;
 }
 
 a {
@@ -45,4 +60,16 @@ a {
 @keyframes pulse {
   0%, 100% { transform: scale(1); opacity: 0.4; }
   50% { transform: scale(1.4); opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Ruled line utility */
+.ruled {
+  width: 100%;
+  height: 1px;
+  background: #e0d8cc;
 }

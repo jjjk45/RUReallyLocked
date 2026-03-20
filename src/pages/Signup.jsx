@@ -18,65 +18,47 @@ export default function Signup() {
 
   return (
     <div style={styles.screen}>
-      <div style={styles.header}>
-        <button style={styles.backBtn} onClick={() => navigate('/')}>←</button>
-        <h2 style={styles.headerTitle}>Create Account</h2>
-        <div style={{ width: 36 }} />
+      <div style={styles.topBar}>
+        <button style={styles.backBtn} onClick={() => navigate('/')}>← back</button>
       </div>
 
       <div style={styles.content}>
-        <div style={styles.hero}>
-          <span style={styles.heroEmoji}>🔒</span>
-          <h1 style={styles.appName}>RUrllyLocked?</h1>
-          <p style={styles.sub}>Join your Rutgers accountability community</p>
+        <div style={styles.header}>
+          <div style={styles.headerLabel}>new entry</div>
+          <h1 style={styles.title}>Create Your Journal</h1>
+          <div style={styles.accentLine} />
+          <p style={styles.sub}>join your rutgers accountability community</p>
         </div>
 
         <form style={styles.form} onSubmit={handleSubmit}>
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Full Name</label>
-            <input
-              style={styles.input}
-              type="text"
-              name="name"
-              placeholder="Jayden Ramirez"
-              value={form.name}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Email</label>
-            <input
-              style={styles.input}
-              type="email"
-              name="email"
-              placeholder="abc123@scarletmail.rutgers.edu"
-              value={form.email}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Password</label>
-            <input
-              style={styles.input}
-              type="password"
-              name="password"
-              placeholder="At least 8 characters"
-              value={form.password}
-              onChange={handleChange}
-              required
-            />
-          </div>
+          {[
+            { name: 'name', label: 'full name', type: 'text', placeholder: 'Jayden Ramirez' },
+            { name: 'email', label: 'email', type: 'email', placeholder: 'abc123@scarletmail.rutgers.edu' },
+            { name: 'password', label: 'password', type: 'password', placeholder: 'at least 8 characters' },
+          ].map(field => (
+            <div key={field.name} style={styles.inputGroup}>
+              <label style={styles.label}>{field.label}</label>
+              <input
+                style={styles.input}
+                type={field.type}
+                name={field.name}
+                placeholder={field.placeholder}
+                value={form[field.name]}
+                onChange={handleChange}
+                required
+              />
+              <div style={styles.inputLine} />
+            </div>
+          ))}
 
-          <button style={{ ...styles.btn, opacity: loading ? 0.7 : 1 }} type="submit" disabled={loading}>
-            {loading ? 'Creating account...' : 'Get Started →'}
+          <button style={{ ...styles.btn, opacity: loading ? 0.6 : 1 }} type="submit" disabled={loading}>
+            {loading ? 'setting up...' : '→ get started'}
           </button>
         </form>
 
         <p style={styles.switchText}>
-          Already have an account?{' '}
-          <Link to="/" style={styles.link}>Log in</Link>
+          already journaling?{' '}
+          <Link to="/" style={styles.link}>sign in</Link>
         </p>
       </div>
     </div>
@@ -86,118 +68,110 @@ export default function Signup() {
 const styles = {
   screen: {
     minHeight: '100vh',
-    background: '#fff',
+    background: '#faf7f2',
     display: 'flex',
     flexDirection: 'column',
+    paddingLeft: 6,
   },
-  header: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '16px 20px',
-    borderBottom: '1px solid #f0f0f0',
+  topBar: {
+    padding: '20px 52px 0',
+    borderBottom: '1px solid #e0d8cc',
+    paddingBottom: 16,
   },
   backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: '50%',
-    background: '#f5f5f5',
+    background: 'transparent',
     border: 'none',
-    fontSize: 18,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    color: '#8b1a2e',
+    fontSize: 20,
+    fontFamily: 'Caveat, cursive',
     cursor: 'pointer',
-    color: '#333',
-  },
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: 700,
-    color: '#1a1a1a',
+    padding: 0,
   },
   content: {
     flex: 1,
-    padding: '32px 28px 40px',
-    display: 'flex',
-    flexDirection: 'column',
+    padding: '44px 52px 40px',
   },
-  hero: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    marginBottom: 36,
+  header: {
+    marginBottom: 40,
   },
-  heroEmoji: {
-    fontSize: 40,
+  headerLabel: {
+    fontSize: 11,
+    color: '#9b8c7e',
+    letterSpacing: '2.5px',
+    fontFamily: '-apple-system, sans-serif',
+    fontWeight: 600,
+    textTransform: 'uppercase',
+    marginBottom: 8,
+  },
+  title: {
+    color: '#2d2416',
+    fontSize: 44,
+    fontWeight: 700,
+    lineHeight: 1.1,
+    marginBottom: 12,
+  },
+  accentLine: {
+    width: 48,
+    height: 3,
+    background: '#8b1a2e',
     marginBottom: 10,
   },
-  appName: {
-    fontSize: 26,
-    fontWeight: 800,
-    color: '#CC0033',
-    marginBottom: 6,
-  },
   sub: {
-    fontSize: 14,
-    color: '#888',
-    textAlign: 'center',
+    color: '#6b5d4e',
+    fontSize: 19,
+    fontStyle: 'italic',
   },
   form: {
     display: 'flex',
     flexDirection: 'column',
-    gap: 18,
-    marginBottom: 20,
+    gap: 28,
+    marginBottom: 28,
+    maxWidth: 420,
   },
   inputGroup: {
     display: 'flex',
     flexDirection: 'column',
-    gap: 7,
+    gap: 4,
   },
   label: {
-    fontSize: 13,
-    fontWeight: 600,
-    color: '#444',
-    letterSpacing: '0.3px',
+    color: '#8b1a2e',
+    fontSize: 16,
+    fontStyle: 'italic',
+    marginBottom: 2,
   },
   input: {
     width: '100%',
-    padding: '14px 16px',
-    borderRadius: 12,
-    border: '1.5px solid #e0e0e0',
-    background: '#fafafa',
-    color: '#1a1a1a',
-    fontSize: 16,
-    transition: 'border-color 0.2s',
+    padding: '6px 0',
+    border: 'none',
+    background: 'transparent',
+    color: '#2d2416',
+    fontSize: 24,
+  },
+  inputLine: {
+    width: '100%',
+    height: 1.5,
+    background: '#c8bfb0',
   },
   btn: {
-    marginTop: 4,
-    width: '100%',
-    padding: '16px',
-    borderRadius: 14,
-    background: '#CC0033',
-    color: '#fff',
-    fontSize: 17,
+    alignSelf: 'flex-start',
+    marginTop: 8,
+    padding: '10px 32px',
+    border: '2px solid #2d2416',
+    background: '#2d2416',
+    color: '#faf7f2',
+    fontSize: 22,
     fontWeight: 700,
+    borderRadius: 2,
     transition: 'opacity 0.2s',
-  },
-  terms: {
-    fontSize: 12,
-    color: '#aaa',
-    textAlign: 'center',
-    lineHeight: 1.5,
-  },
-  termLink: {
-    color: '#CC0033',
-    fontWeight: 600,
+    cursor: 'pointer',
   },
   switchText: {
-    color: '#888',
-    fontSize: 14,
-    textAlign: 'center',
-    marginTop: 16,
+    color: '#6b5d4e',
+    fontSize: 18,
+    marginTop: 8,
   },
   link: {
-    color: '#CC0033',
+    color: '#8b1a2e',
     fontWeight: 700,
   },
 }

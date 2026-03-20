@@ -2,11 +2,11 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const GOALS = [
-  { id: 'gym', emoji: '💪', label: 'Gym', desc: 'Build a consistent workout habit' },
-  { id: 'internships', emoji: '💼', label: 'Internships', desc: 'Apply to opportunities daily' },
-  { id: 'coding', emoji: '💻', label: 'Coding', desc: 'Practice & build projects' },
-  { id: 'studying', emoji: '📚', label: 'Studying', desc: 'Stay on top of coursework' },
-  { id: 'wakeup', emoji: '🌅', label: 'Waking Up Early', desc: 'Build a morning routine' },
+  { id: 'gym', symbol: '◉', label: 'Gym', desc: 'build a consistent workout habit' },
+  { id: 'internships', symbol: '◉', label: 'Internships', desc: 'apply to opportunities daily' },
+  { id: 'coding', symbol: '◉', label: 'Coding', desc: 'practice & build projects' },
+  { id: 'studying', symbol: '◉', label: 'Studying', desc: 'stay on top of coursework' },
+  { id: 'wakeup', symbol: '◉', label: 'Waking Up Early', desc: 'build a morning routine' },
 ]
 
 export default function GoalSelect() {
@@ -21,46 +21,67 @@ export default function GoalSelect() {
 
   return (
     <div style={styles.screen}>
-      <div style={styles.header}>
-        <div style={styles.stepRow}>
-          <span style={styles.step}>Step 1 of 3</span>
-          <div style={styles.progressBar}>
+      <div style={styles.topBar}>
+        <div style={styles.stepInfo}>
+          <span style={styles.stepLabel}>step 1 of 3</span>
+          <div style={styles.progressTrack}>
             <div style={{ ...styles.progressFill, width: '33%' }} />
           </div>
         </div>
       </div>
 
       <div style={styles.content}>
-        <h1 style={styles.title}>What are you working on?</h1>
-        <p style={styles.sub}>Pick one goal — your partner will share the same one.</p>
+        <div style={styles.header}>
+          <div style={styles.headerLabel}>goals collection</div>
+          <h1 style={styles.title}>What are you working on?</h1>
+          <div style={styles.accentLine} />
+          <p style={styles.sub}>pick one goal — your partner will share the same one.</p>
+        </div>
 
-        <div style={styles.grid}>
-          {GOALS.map(g => (
-            <button
-              key={g.id}
-              style={{
-                ...styles.card,
-                ...(selected === g.id ? styles.cardActive : {}),
-              }}
-              onClick={() => setSelected(g.id)}
-            >
-              <span style={styles.cardEmoji}>{g.emoji}</span>
-              <span style={styles.cardLabel}>{g.label}</span>
-              <span style={styles.cardDesc}>{g.desc}</span>
-              {selected === g.id && <span style={styles.check}>✓</span>}
-            </button>
-          ))}
+        <div style={styles.sectionDivider}>
+          <span style={styles.bullet}>•</span>
+          <span style={styles.sectionLabel}>choose your focus</span>
+          <div style={styles.dividerLine} />
+        </div>
+
+        <div style={styles.list}>
+          {GOALS.map(g => {
+            const isSelected = selected === g.id
+            return (
+              <button
+                key={g.id}
+                style={{ ...styles.item, ...(isSelected ? styles.itemActive : {}) }}
+                onClick={() => setSelected(g.id)}
+              >
+                <span style={{ ...styles.itemSymbol, color: isSelected ? '#8b1a2e' : '#c8bfb0' }}>
+                  {isSelected ? '●' : '○'}
+                </span>
+                <div style={styles.itemText}>
+                  <span style={{ ...styles.itemLabel, color: isSelected ? '#2d2416' : '#4a3f35' }}>
+                    {g.label}
+                  </span>
+                  <span style={styles.itemDesc}>{g.desc}</span>
+                </div>
+              </button>
+            )
+          })}
         </div>
       </div>
 
       <div style={styles.footer}>
-        <button
-          style={{ ...styles.btn, opacity: selected ? 1 : 0.4 }}
-          onClick={handleContinue}
-          disabled={!selected}
-        >
-          Continue →
-        </button>
+        <div style={styles.footerLine} />
+        <div style={styles.footerInner}>
+          <span style={styles.footerNote}>
+            {selected ? `✓ selected: ${GOALS.find(g => g.id === selected)?.label}` : 'nothing selected yet'}
+          </span>
+          <button
+            style={{ ...styles.btn, opacity: selected ? 1 : 0.35 }}
+            onClick={handleContinue}
+            disabled={!selected}
+          >
+            continue →
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -69,105 +90,134 @@ export default function GoalSelect() {
 const styles = {
   screen: {
     minHeight: '100vh',
-    background: '#fff',
+    background: '#faf7f2',
     display: 'flex',
     flexDirection: 'column',
+    paddingLeft: 6,
   },
-  header: {
-    padding: '20px 24px 0',
+  topBar: {
+    padding: '20px 52px 16px',
+    borderBottom: '1px solid #e0d8cc',
   },
-  stepRow: {
+  stepInfo: {
     display: 'flex',
     flexDirection: 'column',
     gap: 8,
   },
-  step: {
-    fontSize: 13,
-    fontWeight: 600,
-    color: '#CC0033',
-    textTransform: 'uppercase',
-    letterSpacing: '0.5px',
+  stepLabel: {
+    fontSize: 14,
+    color: '#8b1a2e',
+    fontStyle: 'italic',
   },
-  progressBar: {
-    height: 4,
-    borderRadius: 2,
-    background: '#f0f0f0',
+  progressTrack: {
+    height: 2,
+    background: '#e0d8cc',
+    borderRadius: 1,
     overflow: 'hidden',
+    maxWidth: 200,
   },
   progressFill: {
     height: '100%',
-    background: '#CC0033',
-    borderRadius: 2,
+    background: '#8b1a2e',
     transition: 'width 0.3s',
   },
   content: {
     flex: 1,
-    padding: '28px 20px 100px',
-    overflowY: 'auto',
+    padding: '40px 52px 120px',
+  },
+  header: {
+    marginBottom: 32,
+  },
+  headerLabel: {
+    fontSize: 11,
+    color: '#9b8c7e',
+    letterSpacing: '2.5px',
+    fontFamily: '-apple-system, sans-serif',
+    fontWeight: 600,
+    textTransform: 'uppercase',
+    marginBottom: 8,
   },
   title: {
-    fontSize: 26,
-    fontWeight: 800,
-    color: '#1a1a1a',
-    marginBottom: 8,
-    lineHeight: 1.2,
+    color: '#2d2416',
+    fontSize: 40,
+    fontWeight: 700,
+    lineHeight: 1.1,
+    marginBottom: 12,
+  },
+  accentLine: {
+    width: 48,
+    height: 3,
+    background: '#8b1a2e',
+    marginBottom: 10,
   },
   sub: {
-    fontSize: 14,
-    color: '#888',
-    marginBottom: 28,
-    lineHeight: 1.5,
+    color: '#6b5d4e',
+    fontSize: 18,
+    fontStyle: 'italic',
   },
-  grid: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 12,
-  },
-  card: {
-    width: '100%',
-    padding: '18px 20px',
-    borderRadius: 16,
-    border: '2px solid #eee',
-    background: '#fafafa',
-    textAlign: 'left',
-    cursor: 'pointer',
-    position: 'relative',
-    transition: 'all 0.18s',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 3,
-  },
-  cardActive: {
-    border: '2px solid #CC0033',
-    background: '#fff5f7',
-  },
-  cardEmoji: {
-    fontSize: 28,
-    marginBottom: 4,
-  },
-  cardLabel: {
-    fontSize: 17,
-    fontWeight: 700,
-    color: '#1a1a1a',
-  },
-  cardDesc: {
-    fontSize: 13,
-    color: '#888',
-  },
-  check: {
-    position: 'absolute',
-    top: 18,
-    right: 20,
-    width: 26,
-    height: 26,
-    borderRadius: '50%',
-    background: '#CC0033',
-    color: '#fff',
-    fontSize: 13,
-    fontWeight: 700,
+  sectionDivider: {
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: 10,
+    marginBottom: 20,
+  },
+  bullet: {
+    color: '#8b1a2e',
+    fontSize: 18,
+    flexShrink: 0,
+  },
+  sectionLabel: {
+    color: '#6b5d4e',
+    fontSize: 16,
+    fontStyle: 'italic',
+    flexShrink: 0,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    background: '#e0d8cc',
+  },
+  list: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 2,
+  },
+  item: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: 16,
+    padding: '14px 16px',
+    background: 'transparent',
+    border: 'none',
+    borderBottom: '1px solid #f0ece4',
+    textAlign: 'left',
+    cursor: 'pointer',
+    transition: 'background 0.15s',
+    width: '100%',
+  },
+  itemActive: {
+    background: '#f5ede8',
+  },
+  itemSymbol: {
+    fontSize: 22,
+    lineHeight: 1.3,
+    flexShrink: 0,
+    transition: 'color 0.15s',
+  },
+  itemText: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 2,
+  },
+  itemLabel: {
+    fontSize: 24,
+    fontWeight: 600,
+    transition: 'color 0.15s',
+  },
+  itemDesc: {
+    fontSize: 16,
+    color: '#9b8c7e',
+    fontStyle: 'italic',
   },
   footer: {
     position: 'fixed',
@@ -175,18 +225,34 @@ const styles = {
     left: '50%',
     transform: 'translateX(-50%)',
     width: '100%',
-    maxWidth: 430,
-    padding: '16px 24px 28px',
-    background: 'linear-gradient(to top, #fff 80%, transparent)',
+    maxWidth: 720,
+    paddingLeft: 6,
+    background: '#faf7f2',
+  },
+  footerLine: {
+    height: 1,
+    background: '#e0d8cc',
+  },
+  footerInner: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '16px 52px 24px',
+  },
+  footerNote: {
+    color: '#9b8c7e',
+    fontSize: 17,
+    fontStyle: 'italic',
   },
   btn: {
-    width: '100%',
-    padding: '16px',
-    borderRadius: 14,
-    background: '#CC0033',
-    color: '#fff',
-    fontSize: 17,
+    padding: '10px 28px',
+    border: '2px solid #2d2416',
+    background: '#2d2416',
+    color: '#faf7f2',
+    fontSize: 20,
     fontWeight: 700,
+    borderRadius: 2,
+    cursor: 'pointer',
     transition: 'opacity 0.2s',
   },
 }

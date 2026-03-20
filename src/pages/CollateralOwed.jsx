@@ -2,30 +2,31 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const COLLATERAL_LABELS = {
-  money: { emoji: '💵', label: '$20 to your partner' },
-  meal: { emoji: '🍕', label: 'Owe them a meal' },
-  mile: { emoji: '🏃', label: 'Run a mile' },
-  bathroom: { emoji: '🧹', label: "Clean their bathroom/kitchen" },
-  dishes: { emoji: '🍽️', label: 'Do their dishes' },
+  money: '$20 to your partner',
+  meal: 'owe them a meal',
+  mile: 'run a mile',
+  bathroom: 'clean their bathroom/kitchen',
+  dishes: 'do their dishes',
 }
 
 export default function CollateralOwed() {
   const navigate = useNavigate()
   const [confirmed, setConfirmed] = useState(false)
   const collateralKey = localStorage.getItem('rul_collateral') || 'money'
-  const collateral = COLLATERAL_LABELS[collateralKey] || COLLATERAL_LABELS.money
+  const collateralLabel = COLLATERAL_LABELS[collateralKey] || COLLATERAL_LABELS.money
 
   if (confirmed) {
     return (
       <div style={styles.screen}>
         <div style={styles.confirmedWrap}>
-          <span style={styles.bigEmoji}>✅</span>
-          <h2 style={styles.confirmedTitle}>Collateral marked!</h2>
+          <div style={styles.confirmedLabel}>entry logged</div>
+          <h2 style={styles.confirmedTitle}>Collateral Marked</h2>
+          <div style={styles.confirmedAccent} />
           <p style={styles.confirmedSub}>
-            Your partner has been notified. Stay consistent — you've got this!
+            your partner has been notified. stay consistent — you've got this.
           </p>
           <button style={styles.homeBtn} onClick={() => navigate('/dashboard')}>
-            Back to Dashboard →
+            → back to journal
           </button>
         </div>
       </div>
@@ -36,75 +37,85 @@ export default function CollateralOwed() {
     <div style={styles.screen}>
       {/* Alert bar */}
       <div style={styles.alertBar}>
-        <span style={styles.alertIcon}>⚠️</span>
-        <span style={styles.alertText}>Missed check-in detected</span>
+        <span style={styles.alertBullet}>!</span>
+        <span style={styles.alertText}>missed check-in detected</span>
       </div>
 
       <div style={styles.content}>
         <div style={styles.topSection}>
-          <span style={styles.sadEmoji}>😬</span>
-          <h1 style={styles.title}>You missed a check-in</h1>
-          <p style={styles.sub}>
-            No worries — life happens. But you know what that means...
-          </p>
+          <div style={styles.headerLabel}>missed entry</div>
+          <h1 style={styles.title}>You Missed a Check-In</h1>
+          <div style={styles.accentLine} />
+          <p style={styles.sub}>no worries — life happens. but you know what that means...</p>
         </div>
 
-        {/* Collateral due */}
-        <div style={styles.collateralDue}>
-          <p style={styles.dueLabel}>You owe your partner:</p>
+        {/* What you owe */}
+        <section style={styles.section}>
+          <div style={styles.sectionHead}>
+            <span style={styles.bullet}>•</span>
+            <span style={styles.sectionLabel}>you owe your partner</span>
+            <div style={styles.sectionLine} />
+          </div>
           <div style={styles.dueCard}>
-            <span style={styles.dueEmoji}>{collateral.emoji}</span>
-            <span style={styles.dueText}>{collateral.label}</span>
+            <span style={styles.dueText}>{collateralLabel}</span>
           </div>
-        </div>
+        </section>
 
-        {/* Partner info */}
-        <div style={styles.partnerRow}>
-          <div style={styles.partnerAvatar}>😎</div>
-          <div>
-            <p style={styles.partnerName}>Alex M.</p>
-            <p style={styles.partnerInfo}>Will confirm once you've paid up</p>
+        {/* Partner */}
+        <section style={styles.section}>
+          <div style={styles.sectionHead}>
+            <span style={styles.bullet}>•</span>
+            <span style={styles.sectionLabel}>partner</span>
+            <div style={styles.sectionLine} />
           </div>
-        </div>
+          <div style={styles.partnerRow}>
+            <div style={styles.partnerName}>Alex M.</div>
+            <div style={styles.partnerInfo}>will confirm once you've paid up</div>
+          </div>
+        </section>
 
-        {/* Instructions */}
-        <div style={styles.infoBox}>
-          <p style={styles.infoTitle}>How it works</p>
-          <div style={styles.infoStep}>
-            <span style={styles.stepNum}>1</span>
-            <span style={styles.stepText}>Pay your collateral to your partner</span>
+        {/* Steps */}
+        <section style={styles.section}>
+          <div style={styles.sectionHead}>
+            <span style={styles.bullet}>•</span>
+            <span style={styles.sectionLabel}>how it works</span>
+            <div style={styles.sectionLine} />
           </div>
-          <div style={styles.infoStep}>
-            <span style={styles.stepNum}>2</span>
-            <span style={styles.stepText}>Tap "Mark as Paid" below</span>
+          <div style={styles.stepList}>
+            {[
+              'pay your collateral to your partner',
+              'tap "mark as paid" below',
+              'your partner confirms receipt',
+              "back to your streak — don't let it happen again!",
+            ].map((step, i) => (
+              <div key={i} style={styles.stepRow}>
+                <span style={styles.stepNum}>{i + 1}.</span>
+                <span style={styles.stepText}>{step}</span>
+              </div>
+            ))}
           </div>
-          <div style={styles.infoStep}>
-            <span style={styles.stepNum}>3</span>
-            <span style={styles.stepText}>Your partner confirms receipt</span>
-          </div>
-          <div style={styles.infoStep}>
-            <span style={styles.stepNum}>4</span>
-            <span style={styles.stepText}>Back to your streak — don't let it happen again!</span>
-          </div>
-        </div>
+        </section>
 
         {/* Warning */}
-        <div style={styles.warningBox}>
-          <span style={styles.warnIcon}>🚨</span>
+        <div style={styles.warnBox}>
+          <span style={styles.warnBullet}>!</span>
           <span style={styles.warnText}>
-            Repeated missed check-ins will automatically dissolve your partnership.
-            If collateral is not paid, your partner may report you.
+            repeated missed check-ins will automatically dissolve your partnership.
+            if collateral is not paid, your partner may report you.
           </span>
         </div>
       </div>
 
       <div style={styles.footer}>
-        <button style={styles.paidBtn} onClick={() => setConfirmed(true)}>
-          Mark as Paid ✓
-        </button>
-        <button style={styles.dashBtn} onClick={() => navigate('/dashboard')}>
-          Go to Dashboard
-        </button>
+        <div style={styles.footerLine} />
+        <div style={styles.footerInner}>
+          <button style={styles.dashBtn} onClick={() => navigate('/dashboard')}>
+            dashboard
+          </button>
+          <button style={styles.paidBtn} onClick={() => setConfirmed(true)}>
+            → mark as paid
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -113,158 +124,164 @@ export default function CollateralOwed() {
 const styles = {
   screen: {
     minHeight: '100vh',
-    background: '#fff',
+    background: '#faf7f2',
     display: 'flex',
     flexDirection: 'column',
+    paddingLeft: 6,
   },
   alertBar: {
-    background: '#CC0033',
-    padding: '14px 20px',
+    background: '#8b1a2e',
+    padding: '14px 52px',
     display: 'flex',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
   },
-  alertIcon: { fontSize: 18 },
-  alertText: {
-    color: '#fff',
-    fontSize: 15,
+  alertBullet: {
+    color: '#faf7f2',
+    fontSize: 20,
     fontWeight: 700,
-    letterSpacing: '0.2px',
+    flexShrink: 0,
+  },
+  alertText: {
+    color: '#faf7f2',
+    fontSize: 19,
+    fontStyle: 'italic',
   },
   content: {
     flex: 1,
-    padding: '28px 22px 120px',
+    padding: '36px 52px 120px',
     display: 'flex',
     flexDirection: 'column',
-    gap: 20,
+    gap: 0,
   },
   topSection: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    textAlign: 'center',
-    gap: 8,
+    marginBottom: 32,
   },
-  sadEmoji: { fontSize: 52 },
+  headerLabel: {
+    fontSize: 11,
+    color: '#9b8c7e',
+    letterSpacing: '2.5px',
+    fontFamily: '-apple-system, sans-serif',
+    fontWeight: 600,
+    textTransform: 'uppercase',
+    marginBottom: 8,
+  },
   title: {
-    fontSize: 26,
-    fontWeight: 800,
-    color: '#1a1a1a',
+    color: '#2d2416',
+    fontSize: 40,
+    fontWeight: 700,
+    lineHeight: 1.1,
+    marginBottom: 12,
+  },
+  accentLine: {
+    width: 48,
+    height: 3,
+    background: '#8b1a2e',
+    marginBottom: 10,
   },
   sub: {
-    fontSize: 14,
-    color: '#888',
-    lineHeight: 1.5,
+    color: '#6b5d4e',
+    fontSize: 18,
+    fontStyle: 'italic',
   },
-  collateralDue: {
+  section: {
+    marginBottom: 28,
+  },
+  sectionHead: {
     display: 'flex',
-    flexDirection: 'column',
+    alignItems: 'center',
     gap: 10,
-    alignItems: 'center',
+    marginBottom: 14,
   },
-  dueLabel: {
-    fontSize: 13,
-    fontWeight: 600,
-    color: '#888',
-    textTransform: 'uppercase',
-    letterSpacing: '0.5px',
-  },
-  dueCard: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 14,
-    padding: '18px 28px',
-    borderRadius: 18,
-    background: 'linear-gradient(135deg, #fff5f7, #ffe0e6)',
-    border: '2px solid #ffccd5',
-    boxShadow: '0 4px 16px rgba(204,0,51,0.1)',
-  },
-  dueEmoji: { fontSize: 36 },
-  dueText: {
+  bullet: {
+    color: '#8b1a2e',
     fontSize: 20,
-    fontWeight: 800,
-    color: '#CC0033',
-  },
-  partnerRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 14,
-    padding: '14px 18px',
-    background: '#f8f8f8',
-    borderRadius: 14,
-  },
-  partnerAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: '50%',
-    background: '#e0e0e0',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: 26,
-    border: '2px solid #CC0033',
-  },
-  partnerName: {
-    fontSize: 16,
-    fontWeight: 700,
-    color: '#1a1a1a',
-  },
-  partnerInfo: {
-    fontSize: 12,
-    color: '#999',
-    marginTop: 2,
-  },
-  infoBox: {
-    borderRadius: 16,
-    border: '1.5px solid #e0e0e0',
-    padding: '18px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 12,
-  },
-  infoTitle: {
-    fontSize: 14,
-    fontWeight: 700,
-    color: '#1a1a1a',
-    marginBottom: 4,
-  },
-  infoStep: {
-    display: 'flex',
-    alignItems: 'flex-start',
-    gap: 12,
-  },
-  stepNum: {
-    width: 24,
-    height: 24,
-    borderRadius: '50%',
-    background: '#CC0033',
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: 800,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
     flexShrink: 0,
   },
-  stepText: {
-    fontSize: 14,
-    color: '#555',
-    lineHeight: 1.5,
-    paddingTop: 2,
+  sectionLabel: {
+    color: '#6b5d4e',
+    fontSize: 17,
+    fontStyle: 'italic',
+    flexShrink: 0,
   },
-  warningBox: {
+  sectionLine: {
+    flex: 1,
+    height: 1,
+    background: '#e0d8cc',
+  },
+  dueCard: {
+    padding: '18px 24px',
+    background: '#f5ede8',
+    borderLeft: '4px solid #8b1a2e',
+    border: '1px solid #e0d8cc',
+    borderLeft: '4px solid #8b1a2e',
+  },
+  dueText: {
+    fontSize: 26,
+    fontWeight: 700,
+    color: '#8b1a2e',
+  },
+  partnerRow: {
+    padding: '14px 20px',
+    background: '#fdf9f3',
+    border: '1px solid #e0d8cc',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 4,
+  },
+  partnerName: {
+    fontSize: 22,
+    fontWeight: 700,
+    color: '#2d2416',
+  },
+  partnerInfo: {
+    fontSize: 16,
+    color: '#9b8c7e',
+    fontStyle: 'italic',
+  },
+  stepList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 12,
+  },
+  stepRow: {
+    display: 'flex',
+    gap: 14,
+    alignItems: 'flex-start',
+    fontSize: 18,
+    color: '#4a3f35',
+    borderBottom: '1px solid #f0ece4',
+    paddingBottom: 12,
+  },
+  stepNum: {
+    color: '#8b1a2e',
+    fontWeight: 700,
+    flexShrink: 0,
+    minWidth: 20,
+  },
+  stepText: {
+    fontStyle: 'italic',
+    lineHeight: 1.5,
+  },
+  warnBox: {
     display: 'flex',
     alignItems: 'flex-start',
-    gap: 10,
-    padding: '14px 16px',
-    borderRadius: 12,
-    background: '#fff8e6',
-    border: '1.5px solid #FFD770',
+    gap: 12,
+    padding: '14px 18px',
+    background: '#f5ede8',
+    borderLeft: '3px solid #8b1a2e',
+    marginTop: 4,
   },
-  warnIcon: { fontSize: 16, flexShrink: 0 },
+  warnBullet: {
+    color: '#8b1a2e',
+    fontSize: 20,
+    fontWeight: 700,
+    flexShrink: 0,
+  },
   warnText: {
-    fontSize: 12,
-    color: '#7a5c00',
+    color: '#4a3f35',
+    fontSize: 16,
+    fontStyle: 'italic',
     lineHeight: 1.6,
   },
   footer: {
@@ -273,61 +290,86 @@ const styles = {
     left: '50%',
     transform: 'translateX(-50%)',
     width: '100%',
-    maxWidth: 430,
-    padding: '14px 22px 28px',
-    background: 'linear-gradient(to top, #fff 80%, transparent)',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 10,
+    maxWidth: 720,
+    paddingLeft: 6,
+    background: '#faf7f2',
   },
-  paidBtn: {
-    width: '100%',
-    padding: '16px',
-    borderRadius: 14,
-    background: '#CC0033',
-    color: '#fff',
-    fontSize: 17,
-    fontWeight: 700,
+  footerLine: {
+    height: 1,
+    background: '#e0d8cc',
+  },
+  footerInner: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '16px 52px 24px',
+    gap: 16,
   },
   dashBtn: {
-    width: '100%',
-    padding: '13px',
-    borderRadius: 14,
+    padding: '10px 24px',
+    border: '1.5px solid #c8bfb0',
     background: 'transparent',
-    border: '1.5px solid #e0e0e0',
-    color: '#888',
-    fontSize: 15,
-    fontWeight: 600,
+    color: '#6b5d4e',
+    fontSize: 20,
+    fontFamily: 'Caveat, cursive',
+    cursor: 'pointer',
+    borderRadius: 2,
+  },
+  paidBtn: {
+    padding: '10px 28px',
+    border: '2px solid #8b1a2e',
+    background: '#8b1a2e',
+    color: '#faf7f2',
+    fontSize: 20,
+    fontWeight: 700,
+    fontFamily: 'Caveat, cursive',
+    cursor: 'pointer',
+    borderRadius: 2,
   },
   confirmedWrap: {
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'center',
     justifyContent: 'center',
-    padding: '40px 28px',
+    padding: '60px 52px',
     gap: 16,
-    textAlign: 'center',
   },
-  bigEmoji: { fontSize: 72 },
+  confirmedLabel: {
+    fontSize: 11,
+    color: '#9b8c7e',
+    letterSpacing: '2.5px',
+    fontFamily: '-apple-system, sans-serif',
+    fontWeight: 600,
+    textTransform: 'uppercase',
+  },
   confirmedTitle: {
-    fontSize: 28,
-    fontWeight: 800,
-    color: '#16a34a',
+    fontSize: 44,
+    fontWeight: 700,
+    color: '#4a7c6f',
+  },
+  confirmedAccent: {
+    width: 48,
+    height: 3,
+    background: '#4a7c6f',
   },
   confirmedSub: {
-    fontSize: 15,
-    color: '#888',
+    fontSize: 20,
+    color: '#6b5d4e',
+    fontStyle: 'italic',
     lineHeight: 1.6,
-    maxWidth: 300,
+    maxWidth: 380,
   },
   homeBtn: {
-    marginTop: 16,
-    padding: '16px 36px',
-    borderRadius: 14,
-    background: '#CC0033',
-    color: '#fff',
-    fontSize: 16,
+    alignSelf: 'flex-start',
+    marginTop: 8,
+    padding: '10px 32px',
+    border: '2px solid #2d2416',
+    background: '#2d2416',
+    color: '#faf7f2',
+    fontSize: 22,
     fontWeight: 700,
+    fontFamily: 'Caveat, cursive',
+    borderRadius: 2,
+    cursor: 'pointer',
   },
 }

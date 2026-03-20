@@ -2,11 +2,11 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const COLLATERAL = [
-  { id: 'money', emoji: '💵', label: '$20 to your partner', desc: 'Cold hard cash — the classic motivator' },
-  { id: 'meal', emoji: '🍕', label: 'Owe them a meal', desc: 'Buy your partner lunch or dinner' },
-  { id: 'mile', emoji: '🏃', label: 'Run a mile', desc: 'Take it to the track, no excuses' },
-  { id: 'bathroom', emoji: '🧹', label: "Clean their bathroom/kitchen", desc: "You miss, you scrub" },
-  { id: 'dishes', emoji: '🍽️', label: 'Do their dishes', desc: "A humbling reminder to stay on track" },
+  { id: 'money', label: '$20 to your partner', desc: 'cold hard cash — the classic motivator' },
+  { id: 'meal', label: 'owe them a meal', desc: 'buy your partner lunch or dinner' },
+  { id: 'mile', label: 'run a mile', desc: 'take it to the track, no excuses' },
+  { id: 'bathroom', label: 'clean their bathroom/kitchen', desc: 'you miss, you scrub' },
+  { id: 'dishes', label: 'do their dishes', desc: 'a humbling reminder to stay on track' },
 ]
 
 export default function CollateralSelect() {
@@ -21,58 +21,77 @@ export default function CollateralSelect() {
 
   return (
     <div style={styles.screen}>
-      <div style={styles.header}>
-        <button style={styles.backBtn} onClick={() => navigate('/goal')}>←</button>
-        <div style={styles.stepRow}>
-          <span style={styles.step}>Step 2 of 3</span>
-          <div style={styles.progressBar}>
+      <div style={styles.topBar}>
+        <button style={styles.backBtn} onClick={() => navigate('/goal')}>← back</button>
+        <div style={styles.stepInfo}>
+          <span style={styles.stepLabel}>step 2 of 3</span>
+          <div style={styles.progressTrack}>
             <div style={{ ...styles.progressFill, width: '66%' }} />
           </div>
         </div>
       </div>
 
       <div style={styles.content}>
-        <h1 style={styles.title}>Choose your collateral</h1>
-        <p style={styles.sub}>
-          If you miss a check-in, you owe this to your accountability partner. Choose wisely.
-        </p>
+        <div style={styles.header}>
+          <div style={styles.headerLabel}>stakes collection</div>
+          <h1 style={styles.title}>Choose Your Collateral</h1>
+          <div style={styles.accentLine} />
+          <p style={styles.sub}>if you miss a check-in, you owe this to your partner. choose wisely.</p>
+        </div>
 
-        <div style={styles.infoBox}>
-          <span style={styles.infoIcon}>💡</span>
-          <span style={styles.infoText}>
-            Partners are matched based on compatible collateral choices — pick something real!
+        <div style={styles.noteBox}>
+          <span style={styles.noteBullet}>!</span>
+          <span style={styles.noteText}>
+            partners are matched based on compatible collateral choices — pick something real
           </span>
         </div>
 
-        <div style={styles.grid}>
-          {COLLATERAL.map(c => (
-            <button
-              key={c.id}
-              style={{
-                ...styles.card,
-                ...(selected === c.id ? styles.cardActive : {}),
-              }}
-              onClick={() => setSelected(c.id)}
-            >
-              <span style={styles.cardEmoji}>{c.emoji}</span>
-              <div style={styles.cardText}>
-                <span style={styles.cardLabel}>{c.label}</span>
-                <span style={styles.cardDesc}>{c.desc}</span>
-              </div>
-              {selected === c.id && <span style={styles.check}>✓</span>}
-            </button>
-          ))}
+        <div style={styles.sectionDivider}>
+          <span style={styles.bullet}>•</span>
+          <span style={styles.sectionLabel}>your consequence if you miss</span>
+          <div style={styles.dividerLine} />
+        </div>
+
+        <div style={styles.list}>
+          {COLLATERAL.map(c => {
+            const isSelected = selected === c.id
+            return (
+              <button
+                key={c.id}
+                style={{ ...styles.item, ...(isSelected ? styles.itemActive : {}) }}
+                onClick={() => setSelected(c.id)}
+              >
+                <span style={{ ...styles.itemSymbol, color: isSelected ? '#8b1a2e' : '#c8bfb0' }}>
+                  {isSelected ? '●' : '○'}
+                </span>
+                <div style={styles.itemText}>
+                  <span style={{ ...styles.itemLabel, color: isSelected ? '#2d2416' : '#4a3f35' }}>
+                    {c.label}
+                  </span>
+                  <span style={styles.itemDesc}>{c.desc}</span>
+                </div>
+              </button>
+            )
+          })}
         </div>
       </div>
 
       <div style={styles.footer}>
-        <button
-          style={{ ...styles.btn, opacity: selected ? 1 : 0.4 }}
-          onClick={handleContinue}
-          disabled={!selected}
-        >
-          Find My Partner →
-        </button>
+        <div style={styles.footerLine} />
+        <div style={styles.footerInner}>
+          <span style={styles.footerNote}>
+            {selected
+              ? `✓ ${COLLATERAL.find(c => c.id === selected)?.label}`
+              : 'nothing selected yet'}
+          </span>
+          <button
+            style={{ ...styles.btn, opacity: selected ? 1 : 0.35 }}
+            onClick={handleContinue}
+            disabled={!selected}
+          >
+            find my partner →
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -81,144 +100,169 @@ export default function CollateralSelect() {
 const styles = {
   screen: {
     minHeight: '100vh',
-    background: '#fff',
+    background: '#faf7f2',
     display: 'flex',
     flexDirection: 'column',
+    paddingLeft: 6,
   },
-  header: {
-    padding: '20px 24px 0',
+  topBar: {
+    padding: '20px 52px 16px',
+    borderBottom: '1px solid #e0d8cc',
     display: 'flex',
     flexDirection: 'column',
-    gap: 16,
+    gap: 12,
   },
   backBtn: {
-    alignSelf: 'flex-start',
-    width: 36,
-    height: 36,
-    borderRadius: '50%',
-    background: '#f5f5f5',
+    background: 'transparent',
     border: 'none',
-    fontSize: 18,
+    color: '#8b1a2e',
+    fontSize: 20,
+    fontFamily: 'Caveat, cursive',
     cursor: 'pointer',
-    color: '#333',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    padding: 0,
+    alignSelf: 'flex-start',
   },
-  stepRow: {
+  stepInfo: {
     display: 'flex',
     flexDirection: 'column',
     gap: 8,
   },
-  step: {
-    fontSize: 13,
-    fontWeight: 600,
-    color: '#CC0033',
-    textTransform: 'uppercase',
-    letterSpacing: '0.5px',
+  stepLabel: {
+    fontSize: 14,
+    color: '#8b1a2e',
+    fontStyle: 'italic',
   },
-  progressBar: {
-    height: 4,
-    borderRadius: 2,
-    background: '#f0f0f0',
+  progressTrack: {
+    height: 2,
+    background: '#e0d8cc',
+    borderRadius: 1,
     overflow: 'hidden',
+    maxWidth: 200,
   },
   progressFill: {
     height: '100%',
-    background: '#CC0033',
-    borderRadius: 2,
+    background: '#8b1a2e',
+    transition: 'width 0.3s',
   },
   content: {
     flex: 1,
-    padding: '24px 20px 110px',
-    overflowY: 'auto',
+    padding: '40px 52px 120px',
+  },
+  header: {
+    marginBottom: 28,
+  },
+  headerLabel: {
+    fontSize: 11,
+    color: '#9b8c7e',
+    letterSpacing: '2.5px',
+    fontFamily: '-apple-system, sans-serif',
+    fontWeight: 600,
+    textTransform: 'uppercase',
+    marginBottom: 8,
   },
   title: {
-    fontSize: 26,
-    fontWeight: 800,
-    color: '#1a1a1a',
-    marginBottom: 8,
-    lineHeight: 1.2,
+    color: '#2d2416',
+    fontSize: 40,
+    fontWeight: 700,
+    lineHeight: 1.1,
+    marginBottom: 12,
+  },
+  accentLine: {
+    width: 48,
+    height: 3,
+    background: '#8b1a2e',
+    marginBottom: 10,
   },
   sub: {
-    fontSize: 14,
-    color: '#888',
-    marginBottom: 20,
-    lineHeight: 1.5,
+    color: '#6b5d4e',
+    fontSize: 18,
+    fontStyle: 'italic',
   },
-  infoBox: {
+  noteBox: {
     display: 'flex',
     alignItems: 'flex-start',
-    gap: 10,
-    padding: '14px 16px',
-    borderRadius: 12,
-    background: '#fff8e6',
-    border: '1.5px solid #FFD770',
-    marginBottom: 24,
+    gap: 12,
+    padding: '14px 18px',
+    background: '#f5ede8',
+    borderLeft: '3px solid #8b1a2e',
+    marginBottom: 28,
   },
-  infoIcon: {
+  noteBullet: {
+    color: '#8b1a2e',
+    fontSize: 20,
+    fontWeight: 700,
+    flexShrink: 0,
+    lineHeight: 1.3,
+  },
+  noteText: {
+    color: '#4a3f35',
+    fontSize: 17,
+    fontStyle: 'italic',
+    lineHeight: 1.5,
+  },
+  sectionDivider: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 16,
+  },
+  bullet: {
+    color: '#8b1a2e',
     fontSize: 18,
     flexShrink: 0,
   },
-  infoText: {
-    fontSize: 13,
-    color: '#7a5c00',
-    lineHeight: 1.5,
+  sectionLabel: {
+    color: '#6b5d4e',
+    fontSize: 16,
+    fontStyle: 'italic',
+    flexShrink: 0,
   },
-  grid: {
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    background: '#e0d8cc',
+  },
+  list: {
     display: 'flex',
     flexDirection: 'column',
-    gap: 10,
+    gap: 2,
   },
-  card: {
-    width: '100%',
-    padding: '16px 18px',
-    borderRadius: 14,
-    border: '2px solid #eee',
-    background: '#fafafa',
+  item: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: 16,
+    padding: '14px 16px',
+    background: 'transparent',
+    border: 'none',
+    borderBottom: '1px solid #f0ece4',
     textAlign: 'left',
     cursor: 'pointer',
-    position: 'relative',
-    transition: 'all 0.18s',
-    display: 'flex',
-    alignItems: 'center',
-    gap: 14,
+    transition: 'background 0.15s',
+    width: '100%',
   },
-  cardActive: {
-    border: '2px solid #CC0033',
-    background: '#fff5f7',
+  itemActive: {
+    background: '#f5ede8',
   },
-  cardEmoji: {
-    fontSize: 30,
+  itemSymbol: {
+    fontSize: 22,
+    lineHeight: 1.3,
     flexShrink: 0,
+    transition: 'color 0.15s',
   },
-  cardText: {
+  itemText: {
     display: 'flex',
     flexDirection: 'column',
-    gap: 3,
-    flex: 1,
+    gap: 2,
   },
-  cardLabel: {
+  itemLabel: {
+    fontSize: 22,
+    fontWeight: 600,
+    transition: 'color 0.15s',
+  },
+  itemDesc: {
     fontSize: 16,
-    fontWeight: 700,
-    color: '#1a1a1a',
-  },
-  cardDesc: {
-    fontSize: 12,
-    color: '#999',
-  },
-  check: {
-    width: 26,
-    height: 26,
-    borderRadius: '50%',
-    background: '#CC0033',
-    color: '#fff',
-    fontSize: 13,
-    fontWeight: 700,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
+    color: '#9b8c7e',
+    fontStyle: 'italic',
   },
   footer: {
     position: 'fixed',
@@ -226,18 +270,34 @@ const styles = {
     left: '50%',
     transform: 'translateX(-50%)',
     width: '100%',
-    maxWidth: 430,
-    padding: '16px 24px 28px',
-    background: 'linear-gradient(to top, #fff 80%, transparent)',
+    maxWidth: 720,
+    paddingLeft: 6,
+    background: '#faf7f2',
+  },
+  footerLine: {
+    height: 1,
+    background: '#e0d8cc',
+  },
+  footerInner: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '16px 52px 24px',
+  },
+  footerNote: {
+    color: '#9b8c7e',
+    fontSize: 17,
+    fontStyle: 'italic',
   },
   btn: {
-    width: '100%',
-    padding: '16px',
-    borderRadius: 14,
-    background: '#CC0033',
-    color: '#fff',
-    fontSize: 17,
+    padding: '10px 28px',
+    border: '2px solid #2d2416',
+    background: '#2d2416',
+    color: '#faf7f2',
+    fontSize: 20,
     fontWeight: 700,
+    borderRadius: 2,
+    cursor: 'pointer',
     transition: 'opacity 0.2s',
   },
 }

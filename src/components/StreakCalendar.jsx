@@ -1,10 +1,8 @@
 export default function StreakCalendar({ checkIns = [] }) {
   const today = new Date()
   const WEEKS = 7
-  const DAYS = 7
-  const totalDays = WEEKS * DAYS
+  const totalDays = WEEKS * 7
 
-  // Build array of dates (oldest first)
   const days = []
   for (let i = totalDays - 1; i >= 0; i--) {
     const d = new Date(today)
@@ -12,17 +10,9 @@ export default function StreakCalendar({ checkIns = [] }) {
     days.push(d)
   }
 
-  // Default: mock some checked-in days for demo
   const checkedSet = new Set(checkIns)
   if (checkIns.length === 0) {
-    // Demo data: last 5 days checked in
     for (let i = 0; i < 5; i++) {
-      const d = new Date(today)
-      d.setDate(today.getDate() - i)
-      checkedSet.add(d.toDateString())
-    }
-    // random sprinkle earlier
-    for (let i = 7; i < 35; i += Math.floor(Math.random() * 3) + 1) {
       const d = new Date(today)
       d.setDate(today.getDate() - i)
       checkedSet.add(d.toDateString())
@@ -35,99 +25,72 @@ export default function StreakCalendar({ checkIns = [] }) {
     weeks.push(days.slice(w * 7, w * 7 + 7))
   }
 
-  function getCellColor(d) {
+  function getCellStyle(d) {
     const isToday = d.toDateString() === today.toDateString()
     const checked = checkedSet.has(d.toDateString())
-    if (isToday && !checked) return '#ffe0e6'
-    if (checked) return '#CC0033'
-    return '#f0f0f0'
-  }
+    const isFuture = d > today
 
-  function getCellBorder(d) {
-    const isToday = d.toDateString() === today.toDateString()
-    return isToday ? '2px solid #CC0033' : '2px solid transparent'
+    if (isFuture) {
+      return { symbol: '·', color: '#d8d0c4', fontSize: 20 }
+    }
+    if (checked) {
+      return { symbol: '●', color: '#8b1a2e', fontSize: 18 }
+    }
+    if (isToday) {
+      return { symbol: '○', color: '#8b1a2e', fontSize: 18 }
+    }
+    return { symbol: '○', color: '#d8d0c4', fontSize: 18 }
   }
 
   return (
     <div style={styles.wrap}>
-      <div style={styles.headerRow}>
-        <span style={styles.title}>Check-in Calendar</span>
-        <span style={styles.legend}>
-          <span style={styles.legendDot} /> checked in
-        </span>
-      </div>
-
-      <div style={styles.grid}>
-        {/* Day labels */}
-        <div style={styles.row}>
-          {DAY_LABELS.map((l, i) => (
-            <div key={i} style={styles.dayLabel}>{l}</div>
-          ))}
-        </div>
-        {weeks.map((week, wi) => (
-          <div key={wi} style={styles.row}>
-            {week.map((d, di) => (
-              <div
-                key={di}
-                style={{
-                  ...styles.cell,
-                  background: getCellColor(d),
-                  border: getCellBorder(d),
-                }}
-                title={d.toDateString()}
-              />
-            ))}
-          </div>
+      {/* Day labels */}
+      <div style={styles.labelRow}>
+        {DAY_LABELS.map((l, i) => (
+          <div key={i} style={styles.dayLabel}>{l}</div>
         ))}
       </div>
 
-      <div style={styles.monthLabel}>
-        Last {WEEKS} weeks
+      {/* Weeks */}
+      {weeks.map((week, wi) => (
+        <div key={wi} style={styles.row}>
+          {week.map((d, di) => {
+            const cell = getCellStyle(d)
+            return (
+              <div
+                key={di}
+                style={{ ...styles.cell, color: cell.color, fontSize: cell.fontSize }}
+                title={d.toDateString()}
+              >
+                {cell.symbol}
+              </div>
+            )
+          })}
+        </div>
+      ))}
+
+      <div style={styles.legend}>
+        <span style={styles.legendItem}>
+          <span style={{ color: '#8b1a2e', fontSize: 14 }}>●</span> checked in
+        </span>
+        <span style={styles.legendItem}>
+          <span style={{ color: '#d8d0c4', fontSize: 14 }}>○</span> missed
+        </span>
       </div>
     </div>
   )
 }
 
-const CELL = 36
+const CELL = 34
 
 const styles = {
   wrap: {
     padding: '4px 0',
   },
-  headerRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  title: {
-    fontSize: 15,
-    fontWeight: 700,
-    color: '#1a1a1a',
-  },
-  legend: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 6,
-    fontSize: 12,
-    color: '#888',
-  },
-  legendDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 3,
-    background: '#CC0033',
-    display: 'inline-block',
-  },
-  grid: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 4,
-  },
-  row: {
+  labelRow: {
     display: 'flex',
     gap: 4,
-    justifyContent: 'center',
+    marginBottom: 6,
   },
   dayLabel: {
     width: CELL,
@@ -135,21 +98,36 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: 10,
-    fontWeight: 600,
-    color: '#bbb',
-    letterSpacing: '0.3px',
+    fontSize: 13,
+    color: '#9b8c7e',
+    fontStyle: 'italic',
+  },
+  row: {
+    display: 'flex',
+    gap: 4,
+    marginBottom: 4,
   },
   cell: {
     width: CELL,
     height: CELL,
-    borderRadius: 7,
-    transition: 'background 0.2s',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontFamily: 'Caveat, cursive',
+    lineHeight: 1,
   },
-  monthLabel: {
-    fontSize: 11,
-    color: '#ccc',
-    textAlign: 'right',
-    marginTop: 8,
+  legend: {
+    display: 'flex',
+    gap: 20,
+    marginTop: 10,
+    justifyContent: 'flex-end',
+  },
+  legendItem: {
+    fontSize: 14,
+    color: '#9b8c7e',
+    fontStyle: 'italic',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 4,
   },
 }
