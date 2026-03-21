@@ -2,17 +2,17 @@ export default function ReportPopup({ show, onClose, onSubmit }) {
   if (!show) return null
   return (
     <div style={styles.overlay} onClick={onClose}>
-      <div style={styles.modal} onClick={e => e.stopPropagation()}>
-        <div style={styles.modalLabel}>report</div>
-        <h3 style={styles.modalTitle}>Report Partner</h3>
-        <div style={styles.modalAccent} />
-        <p style={styles.modalText}>
+      <div style={styles.popup} onClick={e => e.stopPropagation()}>
+        <div style={styles.popupLabel}>report</div>
+        <h3 style={styles.popupTitle}>Report Partner</h3>
+        <div style={styles.popupAccent} />
+        <p style={styles.popupText}>
           if your partner has made you uncomfortable in any way, you can report them here.
           your partnership will be reviewed and may be dissolved.
         </p>
-        <div style={styles.modalBtns}>
-          <button style={styles.modalCancel} onClick={onClose}>cancel</button>
-          <button style={styles.modalConfirm} onClick={onSubmit}>→ submit report</button>
+        <div style={styles.popupBtns}>
+          <button style={styles.popupCancel} onClick={onClose}>cancel</button>
+          <button style={styles.popupConfirm} onClick={onSubmit}>→ submit report</button>
         </div>
       </div>
     </div>
@@ -30,7 +30,7 @@ const styles = {
     zIndex: 100,
     padding: 24,
   },
-  modal: {
+  popup: {
     width: '100%',
     maxWidth: 440,
     background: '#faf7f2',
@@ -41,7 +41,7 @@ const styles = {
     gap: 14,
     boxShadow: '4px 4px 24px rgba(0,0,0,0.15)',
   },
-  modalLabel: {
+  popupLabel: {
     fontSize: 11,
     color: '#9b8c7e',
     letterSpacing: '2.5px',
@@ -49,28 +49,28 @@ const styles = {
     fontWeight: 600,
     textTransform: 'uppercase',
   },
-  modalTitle: {
+  popupTitle: {
     fontSize: 32,
     fontWeight: 700,
     color: '#2d2416',
   },
-  modalAccent: {
+  popupAccent: {
     width: 36,
     height: 3,
     background: '#8b1a2e',
   },
-  modalText: {
+  popupText: {
     fontSize: 18,
     color: '#6b5d4e',
     lineHeight: 1.6,
     fontStyle: 'italic',
   },
-  modalBtns: {
+  popupBtns: {
     display: 'flex',
     gap: 12,
     marginTop: 4,
   },
-  modalCancel: {
+  popupCancel: {
     flex: 1,
     padding: '10px',
     border: '1.5px solid #c8bfb0',
@@ -82,7 +82,7 @@ const styles = {
     fontFamily: 'Caveat, cursive',
     borderRadius: 2,
   },
-  modalConfirm: {
+  popupConfirm: {
     flex: 1,
     padding: '10px',
     border: '2px solid #8b1a2e',

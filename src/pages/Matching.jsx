@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-// ========== ADDED HERE: Import auth and database hooks ==========
 import { useAuth } from '../hooks/useAuth'
 import { useDatabase } from '../hooks/useDatabase'
 
@@ -13,14 +12,12 @@ const GOAL_LABELS = {
   calling: { label: 'Calling Parents' }
 }
 
-// ========== COMMENTED OUT FAKE_PROFILES - Will use real data from database ==========
 // const FAKE_PROFILES = [
 //   {
 //     name: 'Alex M.',
 //     year: 'Junior',
 //     major: 'Computer Science',
 //     collateral: '$20 to partner',
-//     streak: 12,
 //     bio: 'Trying to stay consistent at the gym this semester. Looking for someone serious!',
 //   },
 //   {
@@ -28,7 +25,6 @@ const GOAL_LABELS = {
 //     year: 'Sophomore',
 //     major: 'Business',
 //     collateral: 'Owe them a meal',
-//     streak: 7,
 //     bio: 'Applying to 3 internships a week. Need a partner to keep me honest.',
 //   },
 //   {
@@ -36,7 +32,6 @@ const GOAL_LABELS = {
 //     year: 'Senior',
 //     major: 'Biology',
 //     collateral: 'Run a mile',
-//     streak: 21,
 //     bio: 'Early morning check-ins only. Serious about consistency.',
 //   },
 // ]
@@ -52,14 +47,13 @@ const COLLATERAL_LABELS = {
 
 export default function Matching() {
   const navigate = useNavigate()
-  // ========== ADDED HERE: Get user and database functions ==========
   const { user } = useAuth()
   const { findPotentialPartners, createPartnership } = useDatabase()
 
   const [phase, setPhase] = useState('loading')
   const [cardIndex, setCardIndex] = useState(0)
-  const [swipeDir, setSwipeDir] = useState(null)
-  // ========== ADDED HERE: State for real profiles from database ==========
+  const [slideDir, setSlideDir] = useState(null)
+  const [isAnimating, setIsAnimating] = useState(false)
   const [profiles, setProfiles] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -67,7 +61,6 @@ export default function Matching() {
   const goal = localStorage.getItem('rul_goal') || 'gym'
   const goalInfo = GOAL_LABELS[goal] || GOAL_LABELS.gym
 
-  // ========== ADDED HERE: Load potential partners from database ==========
   useEffect(() => {
     async function loadPartners() {
       if (!user) return
@@ -82,7 +75,6 @@ export default function Matching() {
           year: p.profiles?.year || 'Student',
           major: p.profiles?.school || 'Rutgers University',
           collateral: getCollateralLabel(p.collateral_type),
-          streak: 0, // Will calculate from check-ins later
           bio: p.profiles?.bio || `Working on ${goalInfo.label} and looking for accountability!`,
           userId: p.user_id,
           collateralType: p.collateral_type
@@ -124,46 +116,39 @@ export default function Matching() {
     return emojis[index]
   }
 
-  // ========== REPLACED handleAccept with async version ==========
   async function handleAccept() {
     if (!profiles[cardIndex]) return
-
-    setSwipeDir('right')
     try {
-      // Create partnership in database
       await createPartnership(user.id, profiles[cardIndex].userId, goal)
-
-      setTimeout(() => {
-        setPhase('matched')
-      }, 400)
-    } catch (error) {
-      console.error('Error creating partnership:', error)
+      setPhase('matched')
+    } catch (err) {
+      console.error('Error creating partnership:', err)
       setError('Could not create partnership. Please try again.')
-      setSwipeDir(null)
     }
   }
 
-  // ========== COMMENTED OUT ORIGINAL handleAccept ==========
-  // function handleAccept() {
-  //   setSwipeDir('right')
-  //   setTimeout(() => setPhase('matched'), 400)
-  // }
-
-  function handlePass() {
-    setSwipeDir('left')
+  function handlePrev() {
+    if (isAnimating || cardIndex === 0) return
+    setIsAnimating(true)
+    setSlideDir('right')
     setTimeout(() => {
-      setSwipeDir(null)
-      setCardIndex(i => Math.min(i + 1, profiles.length - 1))
-    }, 350)
+      setCardIndex(i => i - 1)
+      setSlideDir(null)
+      setIsAnimating(false)
+    }, 300)
   }
 
-  // ========== COMMENTED OUT ORIGINAL useEffect ==========
-  // useEffect(() => {
-  //   const t = setTimeout(() => setPhase('swiping'), 2200)
-  //   return () => clearTimeout(t)
-  // }, [])
+  function handleNext() {
+    if (isAnimating || cardIndex === profiles.length - 1) return
+    setIsAnimating(true)
+    setSlideDir('left')
+    setTimeout(() => {
+      setCardIndex(i => i + 1)
+      setSlideDir(null)
+      setIsAnimating(false)
+    }, 300)
+  }
 
-  // ========== ADDED HERE: Get current profile ==========
   const profile = profiles[cardIndex]
 
   // ========== ADDED HERE: Loading state while fetching from database ==========
@@ -290,56 +275,65 @@ export default function Matching() {
         <span style={styles.goalTag}>goal: {goalInfo.label}</span>
       </div>
 
-      <p style={styles.hint}>• accept or pass — only you can see them</p>
+      <p style={styles.hint}>• browse profiles and accept your match — only you can see them</p>
 
       <div style={styles.cardArea}>
-        <div
-          style={{
-            ...styles.profileCard,
-            transform: swipeDir === 'right'
-              ? 'translateX(120%) rotate(8deg)'
-              : swipeDir === 'left'
-              ? 'translateX(-120%) rotate(-8deg)'
-              : 'translateX(0)',
-            transition: swipeDir ? 'transform 0.35s ease-in' : 'none',
-          }}
+        <button
+          style={{ ...styles.arrowBtn, opacity: cardIndex === 0 ? 0.25 : 1 }}
+          onClick={handlePrev}
+          disabled={cardIndex === 0}
         >
-          <div style={styles.cardHeaderRow}>
-            <div>
-              <div style={styles.cardName}>{profile.name}</div>
-              <div style={styles.cardMeta}>{profile.year} · {profile.major}</div>
+          ‹
+        </button>
+
+        <div style={{ flex: 1, maxWidth: 480, overflow: 'hidden' }}>
+          <div
+            style={{
+              ...styles.profileCard,
+              animation: slideDir ? `slide-${slideDir} 0.3s ease` : 'none',
+            }}
+          >
+            <div style={styles.cardHeaderRow}>
+              <div>
+                <div style={styles.cardName}>{profile.name}</div>
+                <div style={styles.cardMeta}>{profile.year} · {profile.major}</div>
+              </div>
             </div>
-            <div style={styles.streakTag}>{profile.streak} day streak</div>
-          </div>
 
-          <div style={styles.cardDivider} />
+            <div style={styles.cardDivider} />
 
-          <p style={styles.cardBio}>"{profile.bio}"</p>
+            <p style={styles.cardBio}>"{profile.bio}"</p>
 
-          <div style={styles.cardDivider} />
+            <div style={styles.cardDivider} />
 
-          <div style={styles.cardDetails}>
-            <div style={styles.detailRow}>
-              <span style={styles.detailKey}>○ goal</span>
-              <span style={styles.detailVal}>{goalInfo.label}</span>
-            </div>
-            <div style={styles.detailRow}>
-              <span style={styles.detailKey}>○ collateral</span>
-              <span style={styles.detailVal}>{profile.collateral}</span>
-            </div>
-            <div style={styles.detailRow}>
-              <span style={styles.detailKey}>○ school</span>
-              <span style={styles.detailVal}>Rutgers University</span>
+            <div style={styles.cardDetails}>
+              <div style={styles.detailRow}>
+                <span style={styles.detailKey}>○ goal</span>
+                <span style={styles.detailVal}>{goalInfo.label}</span>
+              </div>
+              <div style={styles.detailRow}>
+                <span style={styles.detailKey}>○ collateral</span>
+                <span style={styles.detailVal}>{profile.collateral}</span>
+              </div>
+              <div style={styles.detailRow}>
+                <span style={styles.detailKey}>○ school</span>
+                <span style={styles.detailVal}>Rutgers University</span>
+              </div>
             </div>
           </div>
         </div>
+
+        <button
+          style={{ ...styles.arrowBtn, opacity: cardIndex === profiles.length - 1 ? 0.25 : 1 }}
+          onClick={handleNext}
+          disabled={cardIndex === profiles.length - 1}
+        >
+          ›
+        </button>
       </div>
 
       <div style={styles.actionRow}>
-        <button style={styles.passBtn} onClick={handlePass}>
-          <span style={styles.actionGlyph}>✕</span>
-          <span style={styles.actionLabel}>pass</span>
-        </button>
+        <span style={styles.counterText}>{cardIndex + 1} / {profiles.length}</span>
         <button style={styles.acceptBtn} onClick={handleAccept}>
           <span style={styles.actionGlyph}>✓</span>
           <span style={styles.actionLabel}>accept</span>
@@ -347,7 +341,7 @@ export default function Matching() {
       </div>
 
       <p style={styles.disclaimer}>
-        you can <span style={styles.reportLink} onClick={() => setShowReport(true)}>report a partner</span> at any time.
+        you can <span style={styles.reportLink}>report a partner</span> at any time.
       </p>
     </div>
   )
@@ -377,6 +371,16 @@ const keyframes = `
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+@keyframes slide-left {
+  0% { transform: translateX(0); opacity: 1; }
+  100% { transform: translateX(-40px); opacity: 0; }
+}
+
+@keyframes slide-right {
+  0% { transform: translateX(0); opacity: 1; }
+  100% { transform: translateX(40px); opacity: 0; }
 }
 `
 
@@ -575,11 +579,29 @@ const styles = {
   },
   cardArea: {
     flex: 1,
-    padding: '32px 52px',
+    padding: '32px 24px',
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+    overflow: 'hidden',
+  },
+  arrowBtn: {
+    flexShrink: 0,
+    width: 48,
+    height: 48,
+    border: '2px solid #c8bfb0',
+    background: '#faf7f2',
+    borderRadius: 2,
+    fontSize: 32,
+    lineHeight: 1,
+    cursor: 'pointer',
+    color: '#2d2416',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'hidden',
+    transition: 'opacity 0.2s',
   },
   profileCard: {
     width: '100%',
@@ -606,15 +628,6 @@ const styles = {
     fontSize: 17,
     fontStyle: 'italic',
     marginTop: 2,
-  },
-  streakTag: {
-    color: '#8b1a2e',
-    fontSize: 16,
-    fontStyle: 'italic',
-    border: '1px solid #c8bfb0',
-    padding: '4px 10px',
-    borderRadius: 2,
-    flexShrink: 0,
   },
   cardDivider: {
     height: 1,
@@ -648,21 +661,17 @@ const styles = {
   },
   actionRow: {
     display: 'flex',
+    alignItems: 'center',
     justifyContent: 'center',
-    gap: 28,
+    gap: 24,
     padding: '12px 52px 8px',
   },
-  passBtn: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: 4,
-    width: 80,
-    height: 80,
-    border: '2px solid #c8bfb0',
-    background: '#faf7f2',
-    borderRadius: 2,
-    cursor: 'pointer',
+  counterText: {
+    color: '#9b8c7e',
+    fontSize: 18,
+    fontStyle: 'italic',
+    minWidth: 48,
+    textAlign: 'center',
   },
   acceptBtn: {
     display: 'flex',

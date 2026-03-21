@@ -10,6 +10,7 @@ const GOALS = [
   { id: 'coding', symbol: '◉', label: 'Coding', desc: 'leetcode, personal, and class projects' },
   { id: 'studying', symbol: '◉', label: 'Studying', desc: 'get the 4.0 semester' },
   { id: 'wakeup', symbol: '◉', label: 'Waking Up Early', desc: 'fix your circadian rhythm' },
+  { id: 'running', symbol: '◉', label: 'Running', desc: 'work up to a 5k'}
 ]
 
 export default function GoalSelect() {
