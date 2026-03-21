@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+// ========== ADDED HERE: Import auth and database hooks ==========
+import { useAuth } from '../hooks/useAuth'
+import { useDatabase } from '../hooks/useDatabase'
 
 const GOALS = [
   { id: 'gym', symbol: '◉', label: 'Gym', desc: 'build a consistent workout habit' },
@@ -11,13 +14,50 @@ const GOALS = [
 
 export default function GoalSelect() {
   const navigate = useNavigate()
+  // ========== ADDED HERE: Get user and database functions ==========
+  const { user } = useAuth()
+  const { saveGoal } = useDatabase()
+  
   const [selected, setSelected] = useState(null)
+  // ========== ADDED HERE: Loading state for button ==========
+  const [loading, setLoading] = useState(false)
+  // ========== ADDED HERE: Error state for displaying errors ==========
+  const [error, setError] = useState('')
 
-  function handleContinue() {
+  // ========== ADDED HERE: Completely replace handleContinue with async version ==========
+  async function handleContinue() {
     if (!selected) return
-    localStorage.setItem('rul_goal', selected)
-    navigate('/collateral')
+    
+    // Get collateral from localStorage (set in CollateralSelect)
+    const collateral = localStorage.getItem('rul_collateral') || 'money'
+    
+    setLoading(true)
+    setError('')
+    
+    try {
+      // Save goal to database
+      await saveGoal(user.id, selected, collateral)
+      
+      // Store in localStorage for quick access
+      localStorage.setItem('rul_goal', selected)
+      localStorage.setItem('rul_collateral', collateral)
+      
+      // Navigate to matching page
+      navigate('/matching')
+    } catch (error) {
+      console.error('Error saving goal:', error)
+      setError(error.message || 'Failed to save your goal. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
+
+  // ========== COMMENTED OUT ORIGINAL handleContinue ==========
+  // function handleContinue() {
+  //   if (!selected) return
+  //   localStorage.setItem('rul_goal', selected)
+  //   navigate('/collateral')
+  // }
 
   return (
     <div style={styles.screen}>
@@ -52,6 +92,8 @@ export default function GoalSelect() {
                 key={g.id}
                 style={{ ...styles.item, ...(isSelected ? styles.itemActive : {}) }}
                 onClick={() => setSelected(g.id)}
+                // ========== ADDED HERE: Disable selection while loading ==========
+                disabled={loading}
               >
                 <span style={{ ...styles.itemSymbol, color: isSelected ? '#8b1a2e' : '#c8bfb0' }}>
                   {isSelected ? '●' : '○'}
@@ -66,6 +108,14 @@ export default function GoalSelect() {
             )
           })}
         </div>
+        
+        {/* ========== ADDED HERE: Error message display ========== */}
+        {error && (
+          <div style={styles.errorMessage}>
+            <span style={styles.errorIcon}>⚠️</span>
+            <span style={styles.errorText}>{error}</span>
+          </div>
+        )}
       </div>
 
       <div style={styles.footer}>
@@ -75,11 +125,12 @@ export default function GoalSelect() {
             {selected ? `✓ selected: ${GOALS.find(g => g.id === selected)?.label}` : 'nothing selected yet'}
           </span>
           <button
-            style={{ ...styles.btn, opacity: selected ? 1 : 0.35 }}
+            style={{ ...styles.btn, opacity: (selected && !loading) ? 1 : 0.35 }}
             onClick={handleContinue}
-            disabled={!selected}
+            disabled={!selected || loading}
           >
-            continue →
+            {/* ========== ADDED HERE: Dynamic button text ========== */}
+            {loading ? 'saving...' : 'continue →'}
           </button>
         </div>
       </div>
@@ -254,5 +305,24 @@ const styles = {
     borderRadius: 2,
     cursor: 'pointer',
     transition: 'opacity 0.2s',
+  },
+  // ========== ADDED HERE: New styles for error messages ==========
+  errorMessage: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '12px 16px',
+    marginTop: '20px',
+    background: '#fff5f5',
+    borderLeft: '4px solid #8b1a2e',
+  },
+  errorIcon: {
+    fontSize: '16px',
+  },
+  errorText: {
+    color: '#8b1a2e',
+    fontSize: '13px',
+    flex: 1,
+    fontFamily: '-apple-system, sans-serif',
   },
 }
