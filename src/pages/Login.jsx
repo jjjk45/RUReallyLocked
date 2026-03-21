@@ -15,7 +15,7 @@ export default function Login() {
     e.preventDefault()
     setLoading(true)
     setError('')  // Clear previous errors
-    
+
     try {
       await signIn(email, password)
       navigate('/dashboard')
@@ -34,16 +34,10 @@ export default function Login() {
           <div style={styles.coverLabel}>ACCOUNTABILITY JOURNAL</div>
           <h1 style={styles.appName}>RUrllyLocked?</h1>
           <div style={styles.accentBar} />
-          <p style={styles.tagline}>your rutgers accountability partner system</p>
+          <p style={styles.tagline}>your accountability tested</p>
           <div style={styles.stampWrap}>
             <div style={styles.stamp}>est. 2025</div>
           </div>
-        </div>
-
-        <div style={styles.divider}>
-          <span style={styles.dividerBullet}>→</span>
-          <span style={styles.dividerText}>sign in to your journal</span>
-          <div style={styles.dividerLine} />
         </div>
 
         <form style={styles.form} onSubmit={handleLogin}>
@@ -59,12 +53,13 @@ export default function Login() {
             />
             <div style={styles.inputLine} />
           </div>
-          
+
           <div style={styles.inputGroup}>
             <label style={styles.label}>password</label>
             <input
               style={styles.input}
               type="password"
+              placeholder="secret"
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
@@ -81,13 +76,13 @@ export default function Login() {
           )}
 
           <button style={{ ...styles.btn, opacity: loading ? 0.6 : 1 }} type="submit" disabled={loading}>
-            {loading ? 'opening journal...' : '→ open journal'}
+            {loading ? 'logging in...' : '→ log in'}
           </button>
         </form>
 
         <p style={styles.switchText}>
           new here?{' '}
-          <Link to="/signup" style={styles.link}>start a new journal</Link>
+          <Link to="/signup" style={styles.link}>create an account</Link>
         </p>
 
         <div style={styles.decorLines}>

@@ -1,6 +1,6 @@
 export default function StreakCalendar({ checkIns = [] }) {
   const today = new Date()
-  const WEEKS = 7
+  const WEEKS = 5
   const totalDays = WEEKS * 7
 
   const days = []
@@ -10,12 +10,13 @@ export default function StreakCalendar({ checkIns = [] }) {
     days.push(d)
   }
 
+  const toISO = (d) => d.toISOString().split('T')[0]
   const checkedSet = new Set(checkIns)
   if (checkIns.length === 0) {
     for (let i = 0; i < 5; i++) {
       const d = new Date(today)
       d.setDate(today.getDate() - i)
-      checkedSet.add(d.toDateString())
+      checkedSet.add(toISO(d))
     }
   }
 
@@ -26,20 +27,22 @@ export default function StreakCalendar({ checkIns = [] }) {
   }
 
   function getCellStyle(d) {
-    const isToday = d.toDateString() === today.toDateString()
-    const checked = checkedSet.has(d.toDateString())
-    const isFuture = d > today
+    const isToday = toISO(d) === toISO(today)
+    const checked = checkedSet.has(toISO(d))
+
+    /*const isFuture = d > today
 
     if (isFuture) {
       return { symbol: '·', color: '#d8d0c4', fontSize: 20 }
-    }
+    }*/
+
     if (checked) {
-      return { symbol: '●', color: '#8b1a2e', fontSize: 18 }
+      return { symbol: '●', color: '#8b1a2e', fontSize: 32 }
     }
     if (isToday) {
-      return { symbol: '○', color: '#8b1a2e', fontSize: 18 }
+      return { symbol: '○', color: '#8b1a2e', fontSize: 32 }
     }
-    return { symbol: '○', color: '#d8d0c4', fontSize: 18 }
+    return { symbol: '○', color: '#d8d0c4', fontSize: 32 }
   }
 
   return (
@@ -86,6 +89,7 @@ const CELL = 34
 const styles = {
   wrap: {
     padding: '4px 0',
+    alignItems: 'center'
   },
   labelRow: {
     display: 'flex',

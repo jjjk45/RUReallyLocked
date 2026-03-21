@@ -26,14 +26,14 @@ const COLLATERAL_LABELS = {
 export default function Dashboard() {
   // ========== ADDED HERE: Auth and database hooks ==========
   const { user } = useAuth()
-  const { 
-    getActivePartnership, 
-    recordCheckIn, 
-    getCurrentStreak, 
+  const {
+    getActivePartnership,
+    recordCheckIn,
+    getCurrentStreak,
     getCheckInHistory,
-    checkMissedCheckIns 
+    checkMissedCheckIns
   } = useDatabase()
-  
+
   // ========== ADDED HERE: State for real data ==========
   const [partnership, setPartnership] = useState(null)
   const [partner, setPartner] = useState(null)
@@ -44,7 +44,7 @@ export default function Dashboard() {
   const [error, setError] = useState('')
   const [showReport, setShowReport] = useState(false)
   const [collateral, setCollateral] = useState(null)
-  
+
   // ========== ADDED HERE: Get goal from localStorage (set during goal selection) ==========
   const goal = localStorage.getItem('rul_goal') || 'gym'
   const goalLabel = GOAL_LABELS[goal] || 'Gym'
@@ -57,38 +57,38 @@ export default function Dashboard() {
   useEffect(() => {
     async function loadDashboardData() {
       if (!user) return
-      
+
       try {
         setLoading(true)
-        
+
         // Get active partnership
         const activePartnership = await getActivePartnership(user.id)
-        
+
         if (activePartnership) {
           setPartnership(activePartnership)
-          
+
           // Determine who the partner is (not the current user)
-          const partnerUser = activePartnership.user1_id === user.id 
-            ? activePartnership.user2 
+          const partnerUser = activePartnership.user1_id === user.id
+            ? activePartnership.user2
             : activePartnership.user1
           setPartner(partnerUser)
-          
+
           // Get current streak
           const currentStreak = await getCurrentStreak(activePartnership.id, user.id)
           setStreak(currentStreak)
-          
+
           // Get check-in history for calendar
           const history = await getCheckInHistory(activePartnership.id, user.id)
           setCheckInHistory(history)
-          
+
           // Check if already checked in today
           const todayStr = new Date().toISOString().split('T')[0]
           const todayCheckIn = history.find(h => h.date === todayStr)
           setCheckedIn(!!todayCheckIn)
-          
+
           // Check for missed check-ins (from yesterday)
           await checkMissedCheckIns(activePartnership.id, user.id)
-          
+
           // Get collateral from goal (stored in localStorage)
           const collateralType = localStorage.getItem('rul_collateral') || 'money'
           setCollateral(COLLATERAL_LABELS[collateralType] || COLLATERAL_LABELS.money)
@@ -103,23 +103,23 @@ export default function Dashboard() {
         setLoading(false)
       }
     }
-    
+
     loadDashboardData()
   }, [user])
 
   // ========== ADDED HERE: Updated check-in handler ==========
   async function handleCheckIn() {
     if (!partnership || checkedIn) return
-    
+
     try {
       const result = await recordCheckIn(partnership.id, user.id)
       setCheckedIn(true)
       setStreak(prev => prev + 1)
-      
+
       // Refresh check-in history
       const updatedHistory = await getCheckInHistory(partnership.id, user.id)
       setCheckInHistory(updatedHistory)
-      
+
       // If both partners checked in, could show a notification
       if (result.bothCheckedIn) {
         // Optional: Show a toast notification
@@ -246,15 +246,15 @@ export default function Dashboard() {
           </div>
         </section>
 
-        {/* Habit Tracker */}
+        {/* Calendar */}
         <section style={styles.section}>
           <div style={styles.sectionHead}>
             <span style={styles.bullet}>•</span>
-            <span style={styles.sectionTitle}>habit tracker</span>
+            <span style={styles.sectionTitle}>calendar</span>
             <div style={styles.sectionLine} />
           </div>
           {/* ========== UPDATED: Pass real check-in history to calendar ========== */}
-          <StreakCalendar checkIns={checkInHistory} />
+          <StreakCalendar checkIns={checkInHistory.map(h => h.date)} />
         </section>
 
         {/* Badges */}
@@ -307,7 +307,7 @@ export default function Dashboard() {
               <button style={styles.modalCancel} onClick={() => setShowReport(false)}>cancel</button>
               <button
                 style={styles.modalConfirm}
-                onClick={() => { 
+                onClick={() => {
                   setShowReport(false)
                   // ========== ADDED HERE: Report functionality ==========
                   alert('Report submitted. Our team will review your report within 24 hours. Thank you for helping keep our community safe.')
