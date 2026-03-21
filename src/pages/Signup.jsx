@@ -1,19 +1,57 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
+import { useDatabase } from '../hooks/useDatabase'
 
 export default function Signup() {
   const navigate = useNavigate()
-  const [form, setForm] = useState({ name: '', email: '', password: '' })
+  const { signUp } = useAuth()
+  const { createProfile } = useDatabase()
+  const [form, setForm] = useState({ 
+    full_name: '', 
+    email: '', 
+    password: '',
+    school: '',
+    year: '',
+    bio: ''
+  })
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')  // ← NEW: Added error state
 
   function handleChange(e) {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }))
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     setLoading(true)
-    setTimeout(() => navigate('/goal'), 800)
+    setError('')  // ← NEW: Clear previous errors
+    
+    try {
+      // Create auth user
+      const { user } = await signUp(form.email, form.password, {
+        full_name: form.full_name,
+        school: form.school,    // ← NEW: Pass school to auth metadata
+        year: form.year,        // ← NEW: Pass year to auth metadata
+        bio: form.bio           // ← NEW: Pass bio to auth metadata
+      })
+      
+      // Create profile in profiles table
+      await createProfile(user.id, {
+        full_name: form.full_name,
+        email: form.email,
+        school: form.school,    // ← NEW: Save school to database
+        year: form.year,        // ← NEW: Save year to database
+        bio: form.bio           // ← NEW: Save bio to database
+      })
+      
+      // Navigate to goal selection
+      navigate('/goal')
+    } catch (error) {
+      setError(error.message)   // ← NEW: Display error to user
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -31,8 +69,10 @@ export default function Signup() {
         </div>
 
         <form style={styles.form} onSubmit={handleSubmit}>
+          
+          {/* ========== EXISTING FIELDS (unchanged) ========== */}
           {[
-            { name: 'name', label: 'full name', type: 'text', placeholder: 'Jayden Ramirez' },
+            { name: 'full_name', label: 'full name', type: 'text', placeholder: 'Jayden Ramirez' },
             { name: 'email', label: 'email', type: 'email', placeholder: 'abc123@scarletmail.rutgers.edu' },
             { name: 'password', label: 'password', type: 'password', placeholder: 'at least 8 characters' },
           ].map(field => (
@@ -51,6 +91,65 @@ export default function Signup() {
             </div>
           ))}
 
+          {/* ========== NEW FIELDS - ADD THESE THREE INPUT GROUPS ========== */}
+          
+          {/* CHANGE MADE HERE: School field */}
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>school</label>
+            <input
+              style={styles.input}
+              type="text"
+              name="school"
+              placeholder="Rutgers University"
+              value={form.school}
+              onChange={handleChange}
+              required
+            />
+            <div style={styles.inputLine} />
+          </div>
+
+          {/* CHANGE MADE HERE: Year field */}
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>year</label>
+            <input
+              style={styles.input}
+              type="text"
+              name="year"
+              placeholder="Freshman, Sophomore, Junior, Senior"
+              value={form.year}
+              onChange={handleChange}
+              required
+            />
+            <div style={styles.inputLine} />
+          </div>
+
+          {/* CHANGE MADE HERE: Bio field (textarea) */}
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>bio (200 chars max)</label>
+            <textarea
+              style={styles.textarea}
+              name="bio"
+              placeholder="Tell us about yourself, your goals, and what you're looking for in an accountability partner..."
+              value={form.bio}
+              onChange={handleChange}
+              maxLength={200}
+              rows={3}
+              required
+            />
+            <div style={styles.inputLine} />
+            <div style={styles.charCount}>
+              {form.bio.length}/200 characters
+            </div>
+          </div>
+
+          {/* CHANGE MADE HERE: Error message display */}
+          {error && (
+            <div style={styles.errorMessage}>
+              <span style={styles.errorIcon}>⚠️</span>
+              <span style={styles.errorText}>{error}</span>
+            </div>
+          )}
+
           <button style={{ ...styles.btn, opacity: loading ? 0.6 : 1 }} type="submit" disabled={loading}>
             {loading ? 'setting up...' : '→ get started'}
           </button>
@@ -65,6 +164,7 @@ export default function Signup() {
   )
 }
 
+// CHANGE MADE HERE: Added new styles for textarea, charCount, and error message
 const styles = {
   screen: {
     minHeight: '100vh',
@@ -146,11 +246,51 @@ const styles = {
     background: 'transparent',
     color: '#2d2416',
     fontSize: 24,
+    fontFamily: '-apple-system, sans-serif',
+  },
+  // CHANGE MADE HERE: New textarea style
+  textarea: {
+    width: '100%',
+    padding: '8px 0',
+    border: 'none',
+    background: 'transparent',
+    color: '#2d2416',
+    fontSize: 18,
+    fontFamily: '-apple-system, sans-serif',
+    resize: 'vertical',
+    minHeight: '70px',
+  },
+  // CHANGE MADE HERE: New character counter style
+  charCount: {
+    textAlign: 'right',
+    fontSize: 11,
+    color: '#9b8c7e',
+    marginTop: 4,
   },
   inputLine: {
     width: '100%',
     height: 1.5,
     background: '#c8bfb0',
+  },
+  // CHANGE MADE HERE: New error message styles
+  errorMessage: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '12px 16px',
+    background: '#fff5f5',
+    borderLeft: '4px solid #8b1a2e',
+    marginTop: '-8px',
+    marginBottom: '-8px',
+  },
+  errorIcon: {
+    fontSize: '18px',
+  },
+  errorText: {
+    color: '#8b1a2e',
+    fontSize: '14px',
+    flex: 1,
+    fontFamily: '-apple-system, sans-serif',
   },
   btn: {
     alignSelf: 'flex-start',
@@ -173,5 +313,9 @@ const styles = {
   link: {
     color: '#8b1a2e',
     fontWeight: 700,
+    textDecoration: 'none',
+    ':hover': {
+      textDecoration: 'underline',
+    },
   },
 }

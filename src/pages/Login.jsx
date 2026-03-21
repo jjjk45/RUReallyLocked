@@ -1,16 +1,29 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
 
 export default function Login() {
   const navigate = useNavigate()
+  const { signIn } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  function handleLogin(e) {
+  // Fix: Add 'async' keyword here
+  async function handleLogin(e) {
     e.preventDefault()
     setLoading(true)
-    setTimeout(() => navigate('/dashboard'), 800)
+    setError('')  // Clear previous errors
+    
+    try {
+      await signIn(email, password)
+      navigate('/dashboard')
+    } catch (error) {
+      setError(error.message)  // Show error message
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -46,6 +59,7 @@ export default function Login() {
             />
             <div style={styles.inputLine} />
           </div>
+          
           <div style={styles.inputGroup}>
             <label style={styles.label}>password</label>
             <input
@@ -57,6 +71,14 @@ export default function Login() {
             />
             <div style={styles.inputLine} />
           </div>
+
+          {/* 🔴 ADD ERROR DISPLAY HERE - Right before the button */}
+          {error && (
+            <div style={styles.errorMessage}>
+              <span style={styles.errorIcon}>⚠️</span>
+              <span style={styles.errorText}>{error}</span>
+            </div>
+          )}
 
           <button style={{ ...styles.btn, opacity: loading ? 0.6 : 1 }} type="submit" disabled={loading}>
             {loading ? 'opening journal...' : '→ open journal'}
@@ -82,6 +104,7 @@ export default function Login() {
   )
 }
 
+// Add error message styles to your existing styles object
 const styles = {
   screen: {
     minHeight: '100vh',
@@ -208,6 +231,26 @@ const styles = {
     transition: 'opacity 0.2s',
     cursor: 'pointer',
   },
+
+  errorMessage: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '12px 16px',
+    background: '#fff5f5',
+    borderLeft: '4px solid #8b1a2e',
+    marginTop: '-8px',
+    marginBottom: '-8px',
+  },
+  errorIcon: {
+    fontSize: '18px',
+  },
+  errorText: {
+    color: '#8b1a2e',
+    fontSize: '14px',
+    flex: 1,
+    fontFamily: '-apple-system, sans-serif',
+  },
   switchText: {
     color: '#6b5d4e',
     fontSize: 18,
@@ -215,6 +258,10 @@ const styles = {
   link: {
     color: '#8b1a2e',
     fontWeight: 700,
+    textDecoration: 'none',
+    ':hover': {
+      textDecoration: 'underline',
+    },
   },
   decorLines: {
     position: 'absolute',
