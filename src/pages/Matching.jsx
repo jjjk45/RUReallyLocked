@@ -2,54 +2,13 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useDatabase } from '../hooks/useDatabase'
-
-const GOAL_LABELS = {
-  gym: { label: 'Gym' },
-  internships: { label: 'Internships' },
-  coding: { label: 'Coding' },
-  studying: { label: 'Studying' },
-  wakeup: { label: 'Waking Up Early' },
-  calling: { label: 'Calling Parents' }
-}
-
-// const FAKE_PROFILES = [
-//   {
-//     name: 'Alex M.',
-//     year: 'Junior',
-//     major: 'Computer Science',
-//     collateral: '$20 to partner',
-//     bio: 'Trying to stay consistent at the gym this semester. Looking for someone serious!',
-//   },
-//   {
-//     name: 'Jordan T.',
-//     year: 'Sophomore',
-//     major: 'Business',
-//     collateral: 'Owe them a meal',
-//     bio: 'Applying to 3 internships a week. Need a partner to keep me honest.',
-//   },
-//   {
-//     name: 'Sam R.',
-//     year: 'Senior',
-//     major: 'Biology',
-//     collateral: 'Run a mile',
-//     bio: 'Early morning check-ins only. Serious about consistency.',
-//   },
-// ]
-
-// ========== ADDED HERE: Collateral label mapping ==========
-const COLLATERAL_LABELS = {
-  money: '$20 to partner',
-  meal: 'Owe them a meal',
-  mile: 'Run a mile',
-  bathroom: 'Clean their bathroom/kitchen',
-  dishes: 'Do their dishes'
-}
+import { GOAL_LABELS } from '../types/goals'
+import { COLLATERAL_LABELS } from '../types/collaterals'
 
 export default function Matching() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { findPotentialPartners, createPartnership } = useDatabase()
-
   const [phase, setPhase] = useState('loading')
   const [cardIndex, setCardIndex] = useState(0)
   const [slideDir, setSlideDir] = useState(null)
@@ -58,35 +17,27 @@ export default function Matching() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  const goal = localStorage.getItem('rul_goal') || 'gym' //SHOULD NOT BE LOCAL STORAGE ADD A HOOK INTO THE DB FOR THIS
+  const goal = localStorage.getItem('rul_goal') || 'gym'
   const goalInfo = GOAL_LABELS[goal] || GOAL_LABELS.gym
 
   useEffect(() => {
     async function loadPartners() {
       if (!user) return
-
       try {
         setLoading(true)
         const partners = await findPotentialPartners(user.id, goal)
-
-        //array
         const formattedProfiles = partners.map(p => ({
           name: p.profiles?.full_name || 'Anonymous',
           year: p.profiles?.year || 'Unknown',
           school: p.profiles?.school || 'School of Arts and Sciences',
           major: p.profiles?.major || 'Undeclared',
           collateral: COLLATERAL_LABELS[p.collateral_type] || 'Unknown',
-          bio: p.profiles?.bio || `Working on ${goalInfo.label} and looking for accountability!`,
+          bio: p.profiles?.bio || `Working on ${goalInfo} and looking for accountability!`,
           userId: p.user_id,
           collateralType: p.collateral_type
         }))
         setProfiles(formattedProfiles)
-
-        if (formattedProfiles.length === 0) {
-          setPhase('noMatches')
-        } else {
-          setPhase('swiping')
-        }
+        setPhase(formattedProfiles.length === 0 ? 'noMatches' : 'swiping')
       } catch (error) {
         console.error('Error loading partners:', error)
         setError('Could not find partners. Please try again later.')
@@ -96,11 +47,7 @@ export default function Matching() {
       }
     }
 
-    // ========== ADDED HERE: Short delay to show loading animation ==========
-    const timer = setTimeout(() => {
-      loadPartners()
-    }, 800)
-
+    const timer = setTimeout(loadPartners, 800)
     return () => clearTimeout(timer)
   }, [user, goal])
 
@@ -145,7 +92,7 @@ export default function Matching() {
         <div style={styles.loadingInner}>
           <div style={styles.spinner} />
           <p style={styles.loadingLabel}>searching for your match</p>
-          <p style={styles.loadingGoal}>goal: <em>{goalInfo.label}</em></p>
+          <p style={styles.loadingGoal}>goal: <em>{goalInfo}</em></p>
           <div style={styles.dots}>
             <Dot delay={0} />
             <Dot delay={0.25} />
@@ -164,7 +111,7 @@ export default function Matching() {
           <h1 style={styles.matchedTitle}>No Matches Yet</h1>
           <div style={styles.matchedAccent} />
           <p style={styles.matchedSub}>
-            There's currently no one else working on <strong>{goalInfo.label}</strong>. Check back later!
+            There's currently no one else working on <strong>{goalInfo}</strong>. Check back later!
           </p>
           <button style={styles.startBtn} onClick={() => navigate('/dashboard')}>
             → back to dashboard
@@ -194,11 +141,10 @@ export default function Matching() {
     return (
       <div style={styles.matchedScreen}>
         <div style={styles.matchedInner}>
-          <div style={styles.matchedLabel}>new entry</div>
           <h1 style={styles.matchedTitle}>It's a Match!</h1>
           <div style={styles.matchedAccent} />
           <p style={styles.matchedSub}>
-            you and <strong>{profile?.name}</strong> are now accountability partners.
+            you and <strong>{profile?.name}</strong> are now accountability partners!
           </p>
 
           <div style={styles.avatarsRow}>
@@ -210,7 +156,7 @@ export default function Matching() {
           <div style={styles.matchDetails}>
             <div style={styles.matchRow}>
               <span style={styles.matchKey}>● shared goal</span>
-              <span style={styles.matchVal}>{goalInfo.label}</span>
+              <span style={styles.matchVal}>{goalInfo}</span>
             </div>
             <div style={styles.matchRowDivider} />
             <div style={styles.matchRow}>
@@ -256,7 +202,7 @@ export default function Matching() {
     <div style={styles.screen}>
       <div style={styles.topBar}>
         <h2 style={styles.topTitle}>Find Your Partner</h2>
-        <span style={styles.goalTag}>goal: {goalInfo.label}</span>
+        <span style={styles.goalTag}>goal: {goalInfo}</span>
       </div>
 
       <p style={styles.hint}>• browse profiles and accept an accountability partner</p>
@@ -285,15 +231,13 @@ export default function Matching() {
             </div>
 
             <div style={styles.cardDivider} />
-
             <p style={styles.cardBio}>"{profile.bio}"</p>
-
             <div style={styles.cardDivider} />
 
             <div style={styles.cardDetails}>
               <div style={styles.detailRow}>
                 <span style={styles.detailKey}>○ goal</span>
-                <span style={styles.detailVal}>{goalInfo.label}</span>
+                <span style={styles.detailVal}>{goalInfo}</span>
               </div>
               <div style={styles.detailRow}>
                 <span style={styles.detailKey}>○ collateral</span>
@@ -325,9 +269,9 @@ export default function Matching() {
       </p>
     </div>
   )
-}
+  }
 
-function Dot({ delay }) {
+  function Dot({ delay }) {
   return (
     <div
       style={{
@@ -339,38 +283,34 @@ function Dot({ delay }) {
       }}
     />
   )
-}
+  }
 
-const keyframes = `
-@keyframes pulse {
-  0%, 100% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.2); }
-}
+  const keyframes = `
+  @keyframes pulse {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.2); }
+  }
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  @keyframes slide-left {
+    0% { transform: translateX(0); opacity: 1; }
+    100% { transform: translateX(-40px); opacity: 0; }
+  }
+  @keyframes slide-right {
+    0% { transform: translateX(0); opacity: 1; }
+    100% { transform: translateX(40px); opacity: 0; }
+  }
+  `
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-@keyframes slide-left {
-  0% { transform: translateX(0); opacity: 1; }
-  100% { transform: translateX(-40px); opacity: 0; }
-}
-
-@keyframes slide-right {
-  0% { transform: translateX(0); opacity: 1; }
-  100% { transform: translateX(40px); opacity: 0; }
-}
-`
-
-// Add style tag for animations
-if (typeof document !== 'undefined') {
+  if (typeof document !== 'undefined') {
   const style = document.createElement('style')
   style.textContent = keyframes
   document.head.appendChild(style)
-}
+  }
 
-const styles = {
+  const styles = {
   loadingScreen: {
     minHeight: '100vh',
     background: '#faf7f2',

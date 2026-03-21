@@ -1,13 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-
-const COLLATERAL_LABELS = {
-  money: '$20 to your partner',
-  meal: 'owe them a meal',
-  mile: 'run a mile',
-  bathroom: 'clean their bathroom/kitchen',
-  dishes: 'do their dishes',
-}
+import { COLLATERAL_LABELS } from '../types/collaterals'
 
 export default function CollateralOwed() {
   const navigate = useNavigate()

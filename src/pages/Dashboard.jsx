@@ -2,27 +2,11 @@ import { useState, useEffect } from 'react'  // ========== ADDED: useEffect ====
 import CheckInButton from '../components/CheckInButton'
 import StreakCalendar from '../components/StreakCalendar'
 import BadgeDisplay from '../components/BadgeDisplay'
-// ========== ADDED HERE: Import auth and database hooks ==========
 import { useAuth } from '../hooks/useAuth'
 import { useDatabase } from '../hooks/useDatabase'
 import ReportPopup from '../components/ReportPopup'
-
-const GOAL_LABELS = {
-  gym: 'Gym',
-  internships: 'Internships',
-  coding: 'Coding',
-  studying: 'Studying',
-  wakeup: 'Waking Up Early',
-}
-
-// ========== ADDED HERE: Collateral label mapping ==========
-const COLLATERAL_LABELS = {
-  money: { emoji: '💵', label: '$20 to partner' },
-  meal: { emoji: '🍕', label: 'Owe them a meal' },
-  mile: { emoji: '🏃', label: 'Run a mile' },
-  bathroom: { emoji: '🧹', label: 'Clean their bathroom/kitchen' },
-  dishes: { emoji: '🍽️', label: 'Do their dishes' },
-}
+import { GOAL_LABELS } from '../types/goals'
+import { COLLATERAL_LABELS, COLLATERAL_EMOJIS } from '../types/collaterals'
 
 export default function Dashboard() {
   // ========== ADDED HERE: Auth and database hooks ==========
@@ -92,7 +76,10 @@ export default function Dashboard() {
 
           // Get collateral from goal (stored in localStorage)
           const collateralType = localStorage.getItem('rul_collateral') || 'money'
-          setCollateral(COLLATERAL_LABELS[collateralType] || COLLATERAL_LABELS.money)
+          setCollateral({
+            emoji: COLLATERAL_EMOJIS[collateralType] || COLLATERAL_EMOJIS.money,
+            label: COLLATERAL_LABELS[collateralType] || COLLATERAL_LABELS.money,
+          })
         } else {
           // No active partnership - user might need to find a partner
           setError('No active partnership found. Please find a partner first.')
