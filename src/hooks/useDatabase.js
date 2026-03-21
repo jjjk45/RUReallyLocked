@@ -1,8 +1,7 @@
 import { supabase } from '../supabaseClient'
 
-// This hook handles all database operations
 export function useDatabase() {
-  
+
   // Create user profile after signup
   const createProfile = async (userId, userData) => {
     const { data, error } = await supabase
@@ -16,7 +15,7 @@ export function useDatabase() {
         bio: userData.bio
       }])
       .select()
-    
+
     if (error) throw error
     return data[0]
   }
@@ -31,12 +30,11 @@ export function useDatabase() {
         collateral_type: collateralType
       }])
       .select()
-    
+
     if (error) throw error
     return data[0]
   }
 
-  // Find potential partners with same goal
   const findPotentialPartners = async (userId, goalType) => {
     // Step 1: get IDs of users already partnered with current user
     const { data: existingPartnerships } = await supabase
@@ -60,6 +58,7 @@ export function useDatabase() {
           full_name,
           school,
           year,
+          major,
           bio
         )
       `)
@@ -70,7 +69,6 @@ export function useDatabase() {
     return data || []
   }
 
-  // Create a partnership
   const createPartnership = async (user1Id, user2Id, goalType) => {
     const { data, error } = await supabase
       .from('partnerships')
@@ -81,15 +79,14 @@ export function useDatabase() {
         status: 'active'
       }])
       .select()
-    
+
     if (error) throw error
     return data[0]
   }
 
-  // Record a check-in
   const recordCheckIn = async (partnershipId, userId) => {
     const today = new Date().toISOString().split('T')[0]
-    
+
     // Check if already checked in today
     const { data: existing } = await supabase
       .from('check_ins')
@@ -97,11 +94,11 @@ export function useDatabase() {
       .eq('partnership_id', partnershipId)
       .eq('user_id', userId)
       .eq('date', today)
-    
+
     if (existing && existing.length > 0) {
       throw new Error('Already checked in today')
     }
-    
+
     const { data, error } = await supabase
       .from('check_ins')
       .insert([{
@@ -111,23 +108,21 @@ export function useDatabase() {
         status: 'on_time'
       }])
       .select()
-    
+
     if (error) throw error
-    
-    // Check if partner also checked in today
+
     const { data: partnerCheck } = await supabase
       .from('check_ins')
       .select()
       .eq('partnership_id', partnershipId)
       .eq('date', today)
-    
+
     return {
       checkIn: data[0],
       bothCheckedIn: partnerCheck && partnerCheck.length === 2
     }
   }
 
-  // Get check-in history for a user in a partnership
   const getCheckInHistory = async (partnershipId, userId) => {
     const { data, error } = await supabase
       .from('check_ins')
@@ -136,12 +131,11 @@ export function useDatabase() {
       .eq('user_id', userId)
       .order('date', { ascending: false })
       .limit(60)  // Last 60 days
-    
+
     if (error) throw error
     return data || []
   }
 
-  // Get current streak
   const getCurrentStreak = async (partnershipId, userId) => {
     const { data, error } = await supabase
       .from('check_ins')
@@ -149,19 +143,19 @@ export function useDatabase() {
       .eq('partnership_id', partnershipId)
       .eq('user_id', userId)
       .order('date', { ascending: false })
-    
+
     if (error) throw error
-    
+
     if (!data || data.length === 0) return 0
-    
+
     let streak = 0
     const today = new Date().toISOString().split('T')[0]
     let currentDate = new Date(today)
-    
+
     for (let i = 0; i < data.length; i++) {
       const checkDate = new Date(data[i].date)
       const expectedDate = new Date(currentDate)
-      
+
       // Check if dates match (allowing for timezone differences)
       if (checkDate.toDateString() === expectedDate.toDateString()) {
         streak++
@@ -170,11 +164,10 @@ export function useDatabase() {
         break
       }
     }
-    
+
     return streak
   }
 
-  // Get user's active partnership
   const getActivePartnership = async (userId) => {
     const { data, error } = await supabase
       .from('partnerships')
@@ -186,12 +179,11 @@ export function useDatabase() {
       .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
       .eq('status', 'active')
       .single()
-    
+
     if (error && error.code !== 'PGRST116') throw error  // PGRST116 = no rows returned
     return data
   }
 
-  // Update check-in window
   const setCheckInWindow = async (partnershipId, startTime, endTime) => {
     const { data, error } = await supabase
       .from('partnerships')
@@ -201,12 +193,11 @@ export function useDatabase() {
       })
       .eq('id', partnershipId)
       .select()
-    
+
     if (error) throw error
     return data[0]
   }
 
-  // Report a missed check-in (create collateral owed)
   const reportMissedCheckIn = async (partnershipId, missedUserId) => {
     const { data, error } = await supabase
       .from('collateral_owed')
@@ -217,12 +208,11 @@ export function useDatabase() {
         status: 'pending'
       }])
       .select()
-    
+
     if (error) throw error
     return data[0]
   }
 
-  // Mark collateral as paid
   const markCollateralPaid = async (collateralId) => {
     const { data, error } = await supabase
       .from('collateral_owed')
@@ -232,30 +222,30 @@ export function useDatabase() {
       })
       .eq('id', collateralId)
       .select()
-    
+
     if (error) throw error
     return data[0]
   }
 
-  // Check for missed check-ins (run this on login or periodically)
+  //run this on login or periodically
   const checkMissedCheckIns = async (partnershipId, userId) => {
     const yesterday = new Date()
     yesterday.setDate(yesterday.getDate() - 1)
     const yesterdayStr = yesterday.toISOString().split('T')[0]
-    
+
     const { data: checkIn } = await supabase
       .from('check_ins')
       .select()
       .eq('partnership_id', partnershipId)
       .eq('user_id', userId)
       .eq('date', yesterdayStr)
-    
+
     if (!checkIn || checkIn.length === 0) {
       // Missed yesterday's check-in
       await reportMissedCheckIn(partnershipId, userId)
       return true
     }
-    
+
     return false
   }
 

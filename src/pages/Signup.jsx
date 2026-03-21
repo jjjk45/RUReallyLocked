@@ -64,8 +64,7 @@ export default function Signup() {
 
       <div style={styles.content}>
         <div style={styles.header}>
-          <div style={styles.headerLabel}>new entry</div>
-          <h1 style={styles.title}>Create Your Journal</h1>
+          <h1 style={styles.title}>Sign Up</h1>
           <div style={styles.accentLine} />
           <p style={styles.sub}>join your rutgers accountability community</p>
         </div>
@@ -177,7 +176,7 @@ export default function Signup() {
         </form>
 
         <p style={styles.switchText}>
-          already journaling?{' '}
+          already have an account?{' '}
           <Link to="/" style={styles.link}>sign in</Link>
         </p>
       </div>

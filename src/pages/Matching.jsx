@@ -58,7 +58,7 @@ export default function Matching() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  const goal = localStorage.getItem('rul_goal') || 'gym'
+  const goal = localStorage.getItem('rul_goal') || 'gym' //SHOULD NOT BE LOCAL STORAGE ADD A HOOK INTO THE DB FOR THIS
   const goalInfo = GOAL_LABELS[goal] || GOAL_LABELS.gym
 
   useEffect(() => {
@@ -69,17 +69,17 @@ export default function Matching() {
         setLoading(true)
         const partners = await findPotentialPartners(user.id, goal)
 
-        // Transform database results to match profile format
+        //array
         const formattedProfiles = partners.map(p => ({
           name: p.profiles?.full_name || 'Anonymous',
-          year: p.profiles?.year || 'Student',
-          major: p.profiles?.school || 'Rutgers University',
-          collateral: getCollateralLabel(p.collateral_type),
+          year: p.profiles?.year || 'Unknown',
+          school: p.profiles?.school || 'School of Arts and Sciences',
+          major: p.profiles?.major || 'Undeclared',
+          collateral: COLLATERAL_LABELS[p.collateral_type] || 'Unknown',
           bio: p.profiles?.bio || `Working on ${goalInfo.label} and looking for accountability!`,
           userId: p.user_id,
           collateralType: p.collateral_type
         }))
-
         setProfiles(formattedProfiles)
 
         if (formattedProfiles.length === 0) {
@@ -103,18 +103,6 @@ export default function Matching() {
 
     return () => clearTimeout(timer)
   }, [user, goal])
-
-  // ========== ADDED HERE: Helper function to get collateral label ==========
-  function getCollateralLabel(collateralType) {
-    return COLLATERAL_LABELS[collateralType] || '$20 to partner'
-  }
-
-  // ========== ADDED HERE: Helper function to get avatar from name ==========
-  function getAvatarEmoji(name) {
-    const emojis = ['😎', '🙌', '🔥', '🌟', '💪', '🎯', '⭐', '✨']
-    const index = name.length % emojis.length
-    return emojis[index]
-  }
 
   async function handleAccept() {
     if (!profiles[cardIndex]) return
@@ -249,7 +237,6 @@ export default function Matching() {
     )
   }
 
-  // ========== ADDED HERE: Check if profile exists before rendering ==========
   if (!profile) {
     return (
       <div style={styles.matchedScreen}>
@@ -275,7 +262,7 @@ export default function Matching() {
         <span style={styles.goalTag}>goal: {goalInfo.label}</span>
       </div>
 
-      <p style={styles.hint}>• browse profiles and accept your match — only you can see them</p>
+      <p style={styles.hint}>• browse profiles and accept an accountability partner</p>
 
       <div style={styles.cardArea}>
         <button
@@ -296,7 +283,7 @@ export default function Matching() {
             <div style={styles.cardHeaderRow}>
               <div>
                 <div style={styles.cardName}>{profile.name}</div>
-                <div style={styles.cardMeta}>{profile.year} · {profile.major}</div>
+                <div style={styles.cardMeta}>{profile.year} · {profile.major} · {profile.school}</div>
               </div>
             </div>
 
@@ -314,10 +301,6 @@ export default function Matching() {
               <div style={styles.detailRow}>
                 <span style={styles.detailKey}>○ collateral</span>
                 <span style={styles.detailVal}>{profile.collateral}</span>
-              </div>
-              <div style={styles.detailRow}>
-                <span style={styles.detailKey}>○ school</span>
-                <span style={styles.detailVal}>Rutgers University</span>
               </div>
             </div>
           </div>

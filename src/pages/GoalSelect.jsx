@@ -1,47 +1,32 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
-import { useDatabase } from '../hooks/useDatabase'
-
 const GOALS = [
-  { id: 'gym', symbol: '◉', label: 'Gym', desc: 'everyday we gym' },
-  { id: 'internships', symbol: '◉', label: 'Internships', desc: 'apply everyday' },
-  { id: 'coding', symbol: '◉', label: 'Coding', desc: 'leetcode, personal, and class projects' },
-  { id: 'studying', symbol: '◉', label: 'Studying', desc: 'get the 4.0 semester' },
-  { id: 'wakeup', symbol: '◉', label: 'Waking Up Early', desc: 'fix your circadian rhythm' },
-  { id: 'callingFamily', symbol: '◉', label: 'Call Your Family', desc: "let them know how you're doing" },
-  { id: 'running', symbol: '◉', label: 'Running', desc: 'work up to a 5k, 10k, or even a marathon'}
+  { id: 'gym', label: 'Gym', desc: 'everyday we gym' },
+  {id: 'internships', label: 'Internships', desc: 'apply everyday' },
+  { id: 'coding', label: 'Coding', desc: 'leetcode, personal, and class projects' },
+  { id: 'studying', label: 'Studying', desc: 'get the 4.0 semester' },
+  { id: 'wakeup', label: 'Waking Up Early', desc: 'fix your circadian rhythm' },
+  {id: 'callingFamily', label: 'Call Your Family', desc: "let them know how you're doing"},
+  {id: 'running', label: 'Running', desc: 'work up to a 5k, 10k, or even a marathon'}
 ]
 
 export default function GoalSelect() {
   const navigate = useNavigate()
-  const { user } = useAuth()
-  const { saveGoal } = useDatabase()
-
-  const [selected, setSelected] = useState(null)
+const [selected, setSelected] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // ========== ADDED HERE: Completely replace handleContinue with async version ==========
   async function handleContinue() {
     if (!selected) return
-
-    // Get collateral from localStorage (set in CollateralSelect)
-    const collateral = localStorage.getItem('rul_collateral') || 'money'
 
     setLoading(true)
     setError('')
 
     try {
-      // Save goal to database
-      await saveGoal(user.id, selected, collateral)
-
-      // Store in localStorage for quick access
       localStorage.setItem('rul_goal', selected)
-      localStorage.setItem('rul_collateral', collateral)
 
-      // Navigate to matching page
-      navigate('/matching')
+      navigate('/collateral')
+
     } catch (error) {
       console.error('Error saving goal:', error)
       setError(error.message || 'Failed to save your goal. Please try again.')
@@ -49,13 +34,6 @@ export default function GoalSelect() {
       setLoading(false)
     }
   }
-
-  // ========== COMMENTED OUT ORIGINAL handleContinue ==========
-  // function handleContinue() {
-  //   if (!selected) return
-  //   localStorage.setItem('rul_goal', selected)
-  //   navigate('/collateral')
-  // }
 
   return (
     <div style={styles.screen}>
@@ -89,7 +67,6 @@ export default function GoalSelect() {
                 key={g.id}
                 style={{ ...styles.item, ...(isSelected ? styles.itemActive : {}) }}
                 onClick={() => setSelected(g.id)}
-                // ========== ADDED HERE: Disable selection while loading ==========
                 disabled={loading}
               >
                 <span style={{ ...styles.itemSymbol, color: isSelected ? '#8b1a2e' : '#c8bfb0' }}>
@@ -106,7 +83,7 @@ export default function GoalSelect() {
           })}
         </div>
 
-        {/* ========== ADDED HERE: Error message display ========== */}
+        { /*error message*/ }
         {error && (
           <div style={styles.errorMessage}>
             <span style={styles.errorIcon}>⚠️</span>
@@ -126,7 +103,6 @@ export default function GoalSelect() {
             onClick={handleContinue}
             disabled={!selected || loading}
           >
-            {/* ========== ADDED HERE: Dynamic button text ========== */}
             {loading ? 'saving...' : 'continue →'}
           </button>
         </div>
@@ -303,7 +279,6 @@ const styles = {
     cursor: 'pointer',
     transition: 'opacity 0.2s',
   },
-  // ========== ADDED HERE: New styles for error messages ==========
   errorMessage: {
     display: 'flex',
     alignItems: 'center',
