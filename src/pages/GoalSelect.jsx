@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-// ========== ADDED HERE: Import auth and database hooks ==========
 import { useAuth } from '../hooks/useAuth'
 import { useDatabase } from '../hooks/useDatabase'
 
@@ -10,19 +9,17 @@ const GOALS = [
   { id: 'coding', symbol: '◉', label: 'Coding', desc: 'leetcode, personal, and class projects' },
   { id: 'studying', symbol: '◉', label: 'Studying', desc: 'get the 4.0 semester' },
   { id: 'wakeup', symbol: '◉', label: 'Waking Up Early', desc: 'fix your circadian rhythm' },
-  { id: 'running', symbol: '◉', label: 'Running', desc: 'work up to a 5k'}
+  { id: 'callingFamily', symbol: '◉', label: 'Call Your Family', desc: "let them know how you're doing" },
+  { id: 'running', symbol: '◉', label: 'Running', desc: 'work up to a 5k, 10k, or even a marathon'}
 ]
 
 export default function GoalSelect() {
   const navigate = useNavigate()
-  // ========== ADDED HERE: Get user and database functions ==========
   const { user } = useAuth()
   const { saveGoal } = useDatabase()
 
   const [selected, setSelected] = useState(null)
-  // ========== ADDED HERE: Loading state for button ==========
   const [loading, setLoading] = useState(false)
-  // ========== ADDED HERE: Error state for displaying errors ==========
   const [error, setError] = useState('')
 
   // ========== ADDED HERE: Completely replace handleContinue with async version ==========
