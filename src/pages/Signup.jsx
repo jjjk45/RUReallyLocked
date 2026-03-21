@@ -7,9 +7,9 @@ export default function Signup() {
   const navigate = useNavigate()
   const { signUp } = useAuth()
   const { createProfile } = useDatabase()
-  const [form, setForm] = useState({ 
-    full_name: '', 
-    email: '', 
+  const [form, setForm] = useState({
+    full_name: '',
+    email: '',
     password: '',
     school: '',
     year: '',
@@ -26,7 +26,7 @@ export default function Signup() {
     e.preventDefault()
     setLoading(true)
     setError('')  // ← NEW: Clear previous errors
-    
+
     try {
       // Create auth user
       const { user } = await signUp(form.email, form.password, {
@@ -35,7 +35,9 @@ export default function Signup() {
         year: form.year,        // ← NEW: Pass year to auth metadata
         bio: form.bio           // ← NEW: Pass bio to auth metadata
       })
-      
+
+      if (!user) throw new Error('Check your email to confirm your account.')
+
       // Create profile in profiles table
       await createProfile(user.id, {
         full_name: form.full_name,
@@ -44,7 +46,7 @@ export default function Signup() {
         year: form.year,        // ← NEW: Save year to database
         bio: form.bio           // ← NEW: Save bio to database
       })
-      
+
       // Navigate to goal selection
       navigate('/goal')
     } catch (error) {
@@ -69,10 +71,10 @@ export default function Signup() {
         </div>
 
         <form style={styles.form} onSubmit={handleSubmit}>
-          
+
           {/* ========== EXISTING FIELDS (unchanged) ========== */}
           {[
-            { name: 'full_name', label: 'full name', type: 'text', placeholder: 'Jayden Ramirez' },
+            { name: 'full_name', label: 'full name', type: 'text', placeholder: 'Firstname Lastname' },
             { name: 'email', label: 'email', type: 'email', placeholder: 'abc123@scarletmail.rutgers.edu' },
             { name: 'password', label: 'password', type: 'password', placeholder: 'at least 8 characters' },
           ].map(field => (
@@ -92,34 +94,53 @@ export default function Signup() {
           ))}
 
           {/* ========== NEW FIELDS - ADD THESE THREE INPUT GROUPS ========== */}
-          
-          {/* CHANGE MADE HERE: School field */}
+
+          {/* School dropdown */}
           <div style={styles.inputGroup}>
             <label style={styles.label}>school</label>
-            <input
-              style={styles.input}
-              type="text"
+            <select
+              style={styles.select}
               name="school"
-              placeholder="Rutgers University"
               value={form.school}
               onChange={handleChange}
               required
-            />
+            >
+              <option value="" disabled>select your school</option>
+              <option>School of Arts and Sciences</option>
+              <option>School of Engineering</option>
+              <option>Rutgers Business School</option>
+              <option>School of Pharmacy</option>
+              <option>School of Nursing</option>
+              <option>School of Communication and Information</option>
+              <option>School of Environmental and Biological Sciences</option>
+              <option>School of Public Health</option>
+              <option>School of Social Work</option>
+              <option>School of Education</option>
+              <option>Ernest Mario School of Pharmacy</option>
+              <option>Mason Gross School of the Arts</option>
+            </select>
             <div style={styles.inputLine} />
           </div>
 
-          {/* CHANGE MADE HERE: Year field */}
+          {/* Year radio buttons */}
           <div style={styles.inputGroup}>
             <label style={styles.label}>year</label>
-            <input
-              style={styles.input}
-              type="text"
-              name="year"
-              placeholder="Freshman, Sophomore, Junior, Senior"
-              value={form.year}
-              onChange={handleChange}
-              required
-            />
+            <div style={styles.radioGroup}>
+              {['Freshman', 'Sophomore', 'Junior', 'Senior'].map(yr => (
+                <label key={yr} style={styles.radioLabel}>
+                  <input
+                    type="radio"
+                    name="year"
+                    value={yr}
+                    checked={form.year === yr}
+                    onChange={handleChange}
+                    required
+                    style={styles.radioInput}
+                  />
+                  {yr}
+                </label>
+              ))}
+            </div>
             <div style={styles.inputLine} />
           </div>
 
@@ -183,7 +204,7 @@ const styles = {
     border: 'none',
     color: '#8b1a2e',
     fontSize: 20,
-    fontFamily: 'Caveat, cursive',
+    fontFamily: 'Patrick Hand',
     cursor: 'pointer',
     padding: 0,
   },
@@ -246,7 +267,7 @@ const styles = {
     background: 'transparent',
     color: '#2d2416',
     fontSize: 24,
-    fontFamily: '-apple-system, sans-serif',
+    fontFamily: 'Patrick Hand',
   },
   // CHANGE MADE HERE: New textarea style
   textarea: {
@@ -256,7 +277,7 @@ const styles = {
     background: 'transparent',
     color: '#2d2416',
     fontSize: 18,
-    fontFamily: '-apple-system, sans-serif',
+    fontFamily: 'Patrick Hand',
     resize: 'vertical',
     minHeight: '70px',
   },
@@ -266,6 +287,40 @@ const styles = {
     fontSize: 11,
     color: '#9b8c7e',
     marginTop: 4,
+  },
+  select: {
+    width: '100%',
+    padding: '6px 0',
+    border: 'none',
+    background: 'transparent',
+    color: '#2d2416',
+    fontSize: 22,
+    fontFamily: 'Patrick Hand',
+    cursor: 'pointer',
+    appearance: 'none',
+    WebkitAppearance: 'none',
+  },
+  radioGroup: {
+    display: 'flex',
+    gap: 20,
+    flexWrap: 'wrap',
+    paddingTop: 6,
+    paddingBottom: 6,
+  },
+  radioLabel: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    fontSize: 20,
+    fontFamily: 'Patrick Hand',
+    color: '#2d2416',
+    cursor: 'pointer',
+  },
+  radioInput: {
+    accentColor: '#8b1a2e',
+    width: 16,
+    height: 16,
+    cursor: 'pointer',
   },
   inputLine: {
     width: '100%',
@@ -290,7 +345,7 @@ const styles = {
     color: '#8b1a2e',
     fontSize: '14px',
     flex: 1,
-    fontFamily: '-apple-system, sans-serif',
+    fontFamily: 'Patrick Hand',
   },
   btn: {
     alignSelf: 'flex-start',
