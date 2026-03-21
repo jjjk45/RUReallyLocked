@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+// ========== ADDED HERE: Import auth and database hooks ==========
+import { useAuth } from '../hooks/useAuth'
+import { useDatabase } from '../hooks/useDatabase'
 
 const GOAL_LABELS = {
   gym: { label: 'Gym' },
@@ -9,62 +12,161 @@ const GOAL_LABELS = {
   wakeup: { label: 'Waking Up Early' },
 }
 
-const FAKE_PROFILES = [
-  {
-    name: 'Alex M.',
-    year: 'Junior',
-    major: 'Computer Science',
-    collateral: '$20 to partner',
-    streak: 12,
-    bio: 'Trying to stay consistent at the gym this semester. Looking for someone serious!',
-  },
-  {
-    name: 'Jordan T.',
-    year: 'Sophomore',
-    major: 'Business',
-    collateral: 'Owe them a meal',
-    streak: 7,
-    bio: 'Applying to 3 internships a week. Need a partner to keep me honest.',
-  },
-  {
-    name: 'Sam R.',
-    year: 'Senior',
-    major: 'Biology',
-    collateral: 'Run a mile',
-    streak: 21,
-    bio: 'Early morning check-ins only. Serious about consistency.',
-  },
-]
+// ========== COMMENTED OUT FAKE_PROFILES - Will use real data from database ==========
+// const FAKE_PROFILES = [
+//   {
+//     name: 'Alex M.',
+//     year: 'Junior',
+//     major: 'Computer Science',
+//     collateral: '$20 to partner',
+//     streak: 12,
+//     bio: 'Trying to stay consistent at the gym this semester. Looking for someone serious!',
+//   },
+//   {
+//     name: 'Jordan T.',
+//     year: 'Sophomore',
+//     major: 'Business',
+//     collateral: 'Owe them a meal',
+//     streak: 7,
+//     bio: 'Applying to 3 internships a week. Need a partner to keep me honest.',
+//   },
+//   {
+//     name: 'Sam R.',
+//     year: 'Senior',
+//     major: 'Biology',
+//     collateral: 'Run a mile',
+//     streak: 21,
+//     bio: 'Early morning check-ins only. Serious about consistency.',
+//   },
+// ]
+
+// ========== ADDED HERE: Collateral label mapping ==========
+const COLLATERAL_LABELS = {
+  money: '$20 to partner',
+  meal: 'Owe them a meal',
+  mile: 'Run a mile',
+  bathroom: 'Clean their bathroom/kitchen',
+  dishes: 'Do their dishes'
+}
 
 export default function Matching() {
   const navigate = useNavigate()
+  // ========== ADDED HERE: Get user and database functions ==========
+  const { user } = useAuth()
+  const { findPotentialPartners, createPartnership } = useDatabase()
+  
   const [phase, setPhase] = useState('loading')
   const [cardIndex, setCardIndex] = useState(0)
   const [swipeDir, setSwipeDir] = useState(null)
+  // ========== ADDED HERE: State for real profiles from database ==========
+  const [profiles, setProfiles] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  
   const goal = localStorage.getItem('rul_goal') || 'gym'
   const goalInfo = GOAL_LABELS[goal] || GOAL_LABELS.gym
 
+  // ========== ADDED HERE: Load potential partners from database ==========
   useEffect(() => {
-    const t = setTimeout(() => setPhase('swiping'), 2200)
-    return () => clearTimeout(t)
-  }, [])
+    async function loadPartners() {
+      if (!user) return
+      
+      try {
+        setLoading(true)
+        const partners = await findPotentialPartners(user.id, goal)
+        
+        // Transform database results to match profile format
+        const formattedProfiles = partners.map(p => ({
+          name: p.profiles?.full_name || 'Anonymous',
+          year: p.profiles?.year || 'Student',
+          major: p.profiles?.school || 'Rutgers University',
+          collateral: getCollateralLabel(p.collateral_type),
+          streak: 0, // Will calculate from check-ins later
+          bio: p.profiles?.bio || `Working on ${goalInfo.label} and looking for accountability!`,
+          userId: p.user_id,
+          collateralType: p.collateral_type
+        }))
+        
+        setProfiles(formattedProfiles)
+        
+        if (formattedProfiles.length === 0) {
+          setPhase('noMatches')
+        } else {
+          setPhase('swiping')
+        }
+      } catch (error) {
+        console.error('Error loading partners:', error)
+        setError('Could not find partners. Please try again later.')
+        setPhase('error')
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    // ========== ADDED HERE: Short delay to show loading animation ==========
+    const timer = setTimeout(() => {
+      loadPartners()
+    }, 800)
+    
+    return () => clearTimeout(timer)
+  }, [user, goal])
 
-  function handleAccept() {
-    setSwipeDir('right')
-    setTimeout(() => setPhase('matched'), 400)
+  // ========== ADDED HERE: Helper function to get collateral label ==========
+  function getCollateralLabel(collateralType) {
+    return COLLATERAL_LABELS[collateralType] || '$20 to partner'
   }
+
+  // ========== ADDED HERE: Helper function to get avatar from name ==========
+  function getAvatarEmoji(name) {
+    const emojis = ['😎', '🙌', '🔥', '🌟', '💪', '🎯', '⭐', '✨']
+    const index = name.length % emojis.length
+    return emojis[index]
+  }
+
+  // ========== REPLACED handleAccept with async version ==========
+  async function handleAccept() {
+    if (!profiles[cardIndex]) return
+    
+    setSwipeDir('right')
+    try {
+      // Create partnership in database
+      await createPartnership(user.id, profiles[cardIndex].userId, goal)
+      
+      setTimeout(() => {
+        setPhase('matched')
+      }, 400)
+    } catch (error) {
+      console.error('Error creating partnership:', error)
+      setError('Could not create partnership. Please try again.')
+      setSwipeDir(null)
+    }
+  }
+
+  // ========== COMMENTED OUT ORIGINAL handleAccept ==========
+  // function handleAccept() {
+  //   setSwipeDir('right')
+  //   setTimeout(() => setPhase('matched'), 400)
+  // }
 
   function handlePass() {
     setSwipeDir('left')
     setTimeout(() => {
       setSwipeDir(null)
-      setCardIndex(i => Math.min(i + 1, FAKE_PROFILES.length - 1))
+      setCardIndex(i => Math.min(i + 1, profiles.length - 1))
     }, 350)
   }
 
-  const profile = FAKE_PROFILES[cardIndex]
+  // ========== COMMENTED OUT ORIGINAL useEffect ==========
+  // useEffect(() => {
+  //   const t = setTimeout(() => setPhase('swiping'), 2200)
+  //   return () => clearTimeout(t)
+  // }, [])
 
-  if (phase === 'loading') {
+  // ========== ADDED HERE: Get current profile ==========
+  const profile = profiles[cardIndex]
+
+  // ========== ADDED HERE: Loading state while fetching from database ==========
+  if (loading) {
     return (
       <div style={styles.loadingScreen}>
         <div style={styles.loadingInner}>
@@ -81,6 +183,42 @@ export default function Matching() {
     )
   }
 
+  // ========== ADDED HERE: No matches found state ==========
+  if (phase === 'noMatches') {
+    return (
+      <div style={styles.matchedScreen}>
+        <div style={styles.matchedInner}>
+          <div style={styles.matchedLabel}>new entry</div>
+          <h1 style={styles.matchedTitle}>No Matches Yet</h1>
+          <div style={styles.matchedAccent} />
+          <p style={styles.matchedSub}>
+            There's currently no one else working on <strong>{goalInfo.label}</strong>. Check back later!
+          </p>
+          <button style={styles.startBtn} onClick={() => navigate('/dashboard')}>
+            → back to dashboard
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // ========== ADDED HERE: Error state ==========
+  if (phase === 'error') {
+    return (
+      <div style={styles.matchedScreen}>
+        <div style={styles.matchedInner}>
+          <div style={styles.matchedLabel}>error</div>
+          <h1 style={styles.matchedTitle}>Something Went Wrong</h1>
+          <div style={styles.matchedAccent} />
+          <p style={styles.matchedSub}>{error}</p>
+          <button style={styles.startBtn} onClick={() => window.location.reload()}>
+            → try again
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   if (phase === 'matched') {
     return (
       <div style={styles.matchedScreen}>
@@ -89,13 +227,13 @@ export default function Matching() {
           <h1 style={styles.matchedTitle}>It's a Match!</h1>
           <div style={styles.matchedAccent} />
           <p style={styles.matchedSub}>
-            you and <strong>{profile.name}</strong> are now accountability partners.
+            you and <strong>{profile?.name}</strong> are now accountability partners.
           </p>
 
           <div style={styles.avatarsRow}>
             <div style={styles.avatarBox}>you</div>
             <span style={styles.heartSym}>♥</span>
-            <div style={styles.avatarBox}>{profile.name.split(' ')[0]}</div>
+            <div style={styles.avatarBox}>{profile?.name?.split(' ')[0]}</div>
           </div>
 
           <div style={styles.matchDetails}>
@@ -106,7 +244,7 @@ export default function Matching() {
             <div style={styles.matchRowDivider} />
             <div style={styles.matchRow}>
               <span style={styles.matchKey}>● collateral</span>
-              <span style={styles.matchVal}>{profile.collateral}</span>
+              <span style={styles.matchVal}>{profile?.collateral}</span>
             </div>
           </div>
 
@@ -119,6 +257,25 @@ export default function Matching() {
 
           <button style={styles.startBtn} onClick={() => navigate('/dashboard')}>
             → let's go
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // ========== ADDED HERE: Check if profile exists before rendering ==========
+  if (!profile) {
+    return (
+      <div style={styles.matchedScreen}>
+        <div style={styles.matchedInner}>
+          <div style={styles.matchedLabel}>new entry</div>
+          <h1 style={styles.matchedTitle}>No More Profiles</h1>
+          <div style={styles.matchedAccent} />
+          <p style={styles.matchedSub}>
+            You've viewed all available partners. Check back later!
+          </p>
+          <button style={styles.startBtn} onClick={() => navigate('/dashboard')}>
+            → back to dashboard
           </button>
         </div>
       </div>
@@ -207,6 +364,26 @@ function Dot({ delay }) {
       }}
     />
   )
+}
+
+// ========== ADDED HERE: Keyframe animation for pulse ==========
+const keyframes = `
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+`
+
+// Add style tag for animations
+if (typeof document !== 'undefined') {
+  const style = document.createElement('style')
+  style.textContent = keyframes
+  document.head.appendChild(style)
 }
 
 const styles = {
