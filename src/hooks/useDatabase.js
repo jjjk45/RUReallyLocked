@@ -38,6 +38,19 @@ export function useDatabase() {
 
   // Find potential partners with same goal
   const findPotentialPartners = async (userId, goalType) => {
+    // Step 1: get IDs of users already partnered with current user
+    const { data: existingPartnerships } = await supabase
+      .from('partnerships')
+      .select('user1_id, user2_id')
+      .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
+
+    const excludedIds = new Set([userId])
+    existingPartnerships?.forEach(p => {
+      excludedIds.add(p.user1_id)
+      excludedIds.add(p.user2_id)
+    })
+
+    // Step 2: query goals excluding those users
     const { data, error } = await supabase
       .from('goals')
       .select(`
@@ -51,26 +64,14 @@ export function useDatabase() {
         )
       `)
       .eq('goal_type', goalType)
-      .neq('user_id', userId)
-      .not('user_id', 'in', (
-        supabase
-          .from('partnerships')
-          .select('user1_id, user2_id')
-          .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
-      ))
-    
+      .not('user_id', 'in', `(${[...excludedIds].join(',')})`)
+
     if (error) throw error
     return data || []
   }
 
   // Create a partnership
   const createPartnership = async (user1Id, user2Id, goalType) => {
-    // First, get collateral types for both users
-    const { data: goals } = await supabase
-      .from('goals')
-      .select('user_id, collateral_type')
-      .in('user_id', [user1Id, user2Id])
-    
     const { data, error } = await supabase
       .from('partnerships')
       .insert([{
@@ -206,7 +207,7 @@ export function useDatabase() {
   }
 
   // Report a missed check-in (create collateral owed)
-  const reportMissedCheckIn = async (partnershipId, userId, missedUserId) => {
+  const reportMissedCheckIn = async (partnershipId, missedUserId) => {
     const { data, error } = await supabase
       .from('collateral_owed')
       .insert([{
@@ -251,7 +252,7 @@ export function useDatabase() {
     
     if (!checkIn || checkIn.length === 0) {
       // Missed yesterday's check-in
-      await reportMissedCheckIn(partnershipId, userId, userId)
+      await reportMissedCheckIn(partnershipId, userId)
       return true
     }
     

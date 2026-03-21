@@ -84,7 +84,7 @@ const styles = {
     fontSize: 18,
     fontWeight: 700,
     color: 'inherit',
-    fontFamily: 'Caveat, cursive',
+    fontFamily: 'Patrick Hand',
   },
   badgeLabel: {
     fontSize: 13,
