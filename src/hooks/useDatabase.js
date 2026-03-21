@@ -1,0 +1,275 @@
+import { supabase } from '../supabaseClient'
+
+// This hook handles all database operations
+export function useDatabase() {
+  
+  // Create user profile after signup
+  const createProfile = async (userId, userData) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .insert([{
+        id: userId,
+        full_name: userData.full_name,
+        email: userData.email,
+        school: userData.school,
+        year: userData.year,
+        bio: userData.bio
+      }])
+      .select()
+    
+    if (error) throw error
+    return data[0]
+  }
+
+  // Save user's goal and collateral
+  const saveGoal = async (userId, goalType, collateralType) => {
+    const { data, error } = await supabase
+      .from('goals')
+      .insert([{
+        user_id: userId,
+        goal_type: goalType,
+        collateral_type: collateralType
+      }])
+      .select()
+    
+    if (error) throw error
+    return data[0]
+  }
+
+  // Find potential partners with same goal
+  const findPotentialPartners = async (userId, goalType) => {
+    const { data, error } = await supabase
+      .from('goals')
+      .select(`
+        user_id,
+        collateral_type,
+        profiles:user_id (
+          full_name,
+          school,
+          year,
+          bio
+        )
+      `)
+      .eq('goal_type', goalType)
+      .neq('user_id', userId)
+      .not('user_id', 'in', (
+        supabase
+          .from('partnerships')
+          .select('user1_id, user2_id')
+          .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
+      ))
+    
+    if (error) throw error
+    return data || []
+  }
+
+  // Create a partnership
+  const createPartnership = async (user1Id, user2Id, goalType) => {
+    // First, get collateral types for both users
+    const { data: goals } = await supabase
+      .from('goals')
+      .select('user_id, collateral_type')
+      .in('user_id', [user1Id, user2Id])
+    
+    const { data, error } = await supabase
+      .from('partnerships')
+      .insert([{
+        user1_id: user1Id,
+        user2_id: user2Id,
+        goal_type: goalType,
+        status: 'active'
+      }])
+      .select()
+    
+    if (error) throw error
+    return data[0]
+  }
+
+  // Record a check-in
+  const recordCheckIn = async (partnershipId, userId) => {
+    const today = new Date().toISOString().split('T')[0]
+    
+    // Check if already checked in today
+    const { data: existing } = await supabase
+      .from('check_ins')
+      .select()
+      .eq('partnership_id', partnershipId)
+      .eq('user_id', userId)
+      .eq('date', today)
+    
+    if (existing && existing.length > 0) {
+      throw new Error('Already checked in today')
+    }
+    
+    const { data, error } = await supabase
+      .from('check_ins')
+      .insert([{
+        partnership_id: partnershipId,
+        user_id: userId,
+        date: today,
+        status: 'on_time'
+      }])
+      .select()
+    
+    if (error) throw error
+    
+    // Check if partner also checked in today
+    const { data: partnerCheck } = await supabase
+      .from('check_ins')
+      .select()
+      .eq('partnership_id', partnershipId)
+      .eq('date', today)
+    
+    return {
+      checkIn: data[0],
+      bothCheckedIn: partnerCheck && partnerCheck.length === 2
+    }
+  }
+
+  // Get check-in history for a user in a partnership
+  const getCheckInHistory = async (partnershipId, userId) => {
+    const { data, error } = await supabase
+      .from('check_ins')
+      .select('*')
+      .eq('partnership_id', partnershipId)
+      .eq('user_id', userId)
+      .order('date', { ascending: false })
+      .limit(60)  // Last 60 days
+    
+    if (error) throw error
+    return data || []
+  }
+
+  // Get current streak
+  const getCurrentStreak = async (partnershipId, userId) => {
+    const { data, error } = await supabase
+      .from('check_ins')
+      .select('date')
+      .eq('partnership_id', partnershipId)
+      .eq('user_id', userId)
+      .order('date', { ascending: false })
+    
+    if (error) throw error
+    
+    if (!data || data.length === 0) return 0
+    
+    let streak = 0
+    const today = new Date().toISOString().split('T')[0]
+    let currentDate = new Date(today)
+    
+    for (let i = 0; i < data.length; i++) {
+      const checkDate = new Date(data[i].date)
+      const expectedDate = new Date(currentDate)
+      
+      // Check if dates match (allowing for timezone differences)
+      if (checkDate.toDateString() === expectedDate.toDateString()) {
+        streak++
+        currentDate.setDate(currentDate.getDate() - 1)
+      } else {
+        break
+      }
+    }
+    
+    return streak
+  }
+
+  // Get user's active partnership
+  const getActivePartnership = async (userId) => {
+    const { data, error } = await supabase
+      .from('partnerships')
+      .select(`
+        *,
+        user1:user1_id (full_name, school, year),
+        user2:user2_id (full_name, school, year)
+      `)
+      .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
+      .eq('status', 'active')
+      .single()
+    
+    if (error && error.code !== 'PGRST116') throw error  // PGRST116 = no rows returned
+    return data
+  }
+
+  // Update check-in window
+  const setCheckInWindow = async (partnershipId, startTime, endTime) => {
+    const { data, error } = await supabase
+      .from('partnerships')
+      .update({
+        check_in_window_start: startTime,
+        check_in_window_end: endTime
+      })
+      .eq('id', partnershipId)
+      .select()
+    
+    if (error) throw error
+    return data[0]
+  }
+
+  // Report a missed check-in (create collateral owed)
+  const reportMissedCheckIn = async (partnershipId, userId, missedUserId) => {
+    const { data, error } = await supabase
+      .from('collateral_owed')
+      .insert([{
+        partnership_id: partnershipId,
+        user_id: missedUserId,
+        reason: 'missed_checkin',
+        status: 'pending'
+      }])
+      .select()
+    
+    if (error) throw error
+    return data[0]
+  }
+
+  // Mark collateral as paid
+  const markCollateralPaid = async (collateralId) => {
+    const { data, error } = await supabase
+      .from('collateral_owed')
+      .update({
+        status: 'paid',
+        paid_at: new Date().toISOString()
+      })
+      .eq('id', collateralId)
+      .select()
+    
+    if (error) throw error
+    return data[0]
+  }
+
+  // Check for missed check-ins (run this on login or periodically)
+  const checkMissedCheckIns = async (partnershipId, userId) => {
+    const yesterday = new Date()
+    yesterday.setDate(yesterday.getDate() - 1)
+    const yesterdayStr = yesterday.toISOString().split('T')[0]
+    
+    const { data: checkIn } = await supabase
+      .from('check_ins')
+      .select()
+      .eq('partnership_id', partnershipId)
+      .eq('user_id', userId)
+      .eq('date', yesterdayStr)
+    
+    if (!checkIn || checkIn.length === 0) {
+      // Missed yesterday's check-in
+      await reportMissedCheckIn(partnershipId, userId, userId)
+      return true
+    }
+    
+    return false
+  }
+
+  return {
+    createProfile,
+    saveGoal,
+    findPotentialPartners,
+    createPartnership,
+    recordCheckIn,
+    getCheckInHistory,
+    getCurrentStreak,
+    getActivePartnership,
+    setCheckInWindow,
+    reportMissedCheckIn,
+    markCollateralPaid,
+    checkMissedCheckIns
+  }
+}
