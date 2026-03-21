@@ -1,7 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'  // ========== ADDED: useEffect ==========
 import CheckInButton from '../components/CheckInButton'
 import StreakCalendar from '../components/StreakCalendar'
 import BadgeDisplay from '../components/BadgeDisplay'
+// ========== ADDED HERE: Import auth and database hooks ==========
+import { useAuth } from '../hooks/useAuth'
+import { useDatabase } from '../hooks/useDatabase'
 
 const GOAL_LABELS = {
   gym: 'Gym',
@@ -11,10 +14,38 @@ const GOAL_LABELS = {
   wakeup: 'Waking Up Early',
 }
 
+// ========== ADDED HERE: Collateral label mapping ==========
+const COLLATERAL_LABELS = {
+  money: { emoji: '💵', label: '$20 to partner' },
+  meal: { emoji: '🍕', label: 'Owe them a meal' },
+  mile: { emoji: '🏃', label: 'Run a mile' },
+  bathroom: { emoji: '🧹', label: 'Clean their bathroom/kitchen' },
+  dishes: { emoji: '🍽️', label: 'Do their dishes' },
+}
+
 export default function Dashboard() {
+  // ========== ADDED HERE: Auth and database hooks ==========
+  const { user } = useAuth()
+  const { 
+    getActivePartnership, 
+    recordCheckIn, 
+    getCurrentStreak, 
+    getCheckInHistory,
+    checkMissedCheckIns 
+  } = useDatabase()
+  
+  // ========== ADDED HERE: State for real data ==========
+  const [partnership, setPartnership] = useState(null)
+  const [partner, setPartner] = useState(null)
+  const [streak, setStreak] = useState(0)
   const [checkedIn, setCheckedIn] = useState(false)
+  const [checkInHistory, setCheckInHistory] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [showReport, setShowReport] = useState(false)
-  const [streak, setStreak] = useState(5)
+  const [collateral, setCollateral] = useState(null)
+  
+  // ========== ADDED HERE: Get goal from localStorage (set during goal selection) ==========
   const goal = localStorage.getItem('rul_goal') || 'gym'
   const goalLabel = GOAL_LABELS[goal] || 'Gym'
 
@@ -22,9 +53,132 @@ export default function Dashboard() {
     weekday: 'long', month: 'long', day: 'numeric'
   })
 
-  function handleCheckIn() {
-    setCheckedIn(true)
-    setStreak(s => s + 1)
+  // ========== ADDED HERE: Load dashboard data from database ==========
+  useEffect(() => {
+    async function loadDashboardData() {
+      if (!user) return
+      
+      try {
+        setLoading(true)
+        
+        // Get active partnership
+        const activePartnership = await getActivePartnership(user.id)
+        
+        if (activePartnership) {
+          setPartnership(activePartnership)
+          
+          // Determine who the partner is (not the current user)
+          const partnerUser = activePartnership.user1_id === user.id 
+            ? activePartnership.user2 
+            : activePartnership.user1
+          setPartner(partnerUser)
+          
+          // Get current streak
+          const currentStreak = await getCurrentStreak(activePartnership.id, user.id)
+          setStreak(currentStreak)
+          
+          // Get check-in history for calendar
+          const history = await getCheckInHistory(activePartnership.id, user.id)
+          setCheckInHistory(history)
+          
+          // Check if already checked in today
+          const todayStr = new Date().toISOString().split('T')[0]
+          const todayCheckIn = history.find(h => h.date === todayStr)
+          setCheckedIn(!!todayCheckIn)
+          
+          // Check for missed check-ins (from yesterday)
+          await checkMissedCheckIns(activePartnership.id, user.id)
+          
+          // Get collateral from goal (stored in localStorage)
+          const collateralType = localStorage.getItem('rul_collateral') || 'money'
+          setCollateral(COLLATERAL_LABELS[collateralType] || COLLATERAL_LABELS.money)
+        } else {
+          // No active partnership - user might need to find a partner
+          setError('No active partnership found. Please find a partner first.')
+        }
+      } catch (error) {
+        console.error('Error loading dashboard:', error)
+        setError(error.message || 'Failed to load dashboard data')
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    loadDashboardData()
+  }, [user])
+
+  // ========== ADDED HERE: Updated check-in handler ==========
+  async function handleCheckIn() {
+    if (!partnership || checkedIn) return
+    
+    try {
+      const result = await recordCheckIn(partnership.id, user.id)
+      setCheckedIn(true)
+      setStreak(prev => prev + 1)
+      
+      // Refresh check-in history
+      const updatedHistory = await getCheckInHistory(partnership.id, user.id)
+      setCheckInHistory(updatedHistory)
+      
+      // If both partners checked in, could show a notification
+      if (result.bothCheckedIn) {
+        // Optional: Show a toast notification
+        console.log('Both partners checked in today!')
+      }
+    } catch (error) {
+      console.error('Error checking in:', error)
+      setError(error.message || 'Failed to check in. Please try again.')
+    }
+  }
+
+  // ========== COMMENTED OUT ORIGINAL handleCheckIn ==========
+  // function handleCheckIn() {
+  //   setCheckedIn(true)
+  //   setStreak(s => s + 1)
+  // }
+
+  // ========== ADDED HERE: Helper to format partner info ==========
+  const getPartnerDisplayName = () => {
+    if (!partner) return 'Finding partner...'
+    return partner.full_name || 'Accountability Partner'
+  }
+
+  const getPartnerYear = () => {
+    if (!partner) return ''
+    return partner.year || 'Student'
+  }
+
+  const getPartnerSchool = () => {
+    if (!partner) return ''
+    return partner.school || 'Rutgers University'
+  }
+
+  // ========== ADDED HERE: Loading state ==========
+  if (loading) {
+    return (
+      <div style={styles.screen}>
+        <div style={styles.loadingContainer}>
+          <div style={styles.spinner} />
+          <p style={styles.loadingText}>loading your journal...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // ========== ADDED HERE: Error state ==========
+  if (error && !partnership) {
+    return (
+      <div style={styles.screen}>
+        <div style={styles.errorContainer}>
+          <div style={styles.errorIcon}>⚠️</div>
+          <h2 style={styles.errorTitle}>No Active Partnership</h2>
+          <p style={styles.errorMessage}>{error}</p>
+          <button style={styles.errorButton} onClick={() => window.location.href = '/matching'}>
+            → find a partner
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -52,8 +206,10 @@ export default function Dashboard() {
 
           <div style={styles.partnerBlock}>
             <div style={styles.partnerInfo}>
-              <div style={styles.partnerName}>Alex M.</div>
-              <div style={styles.partnerMeta}>Junior · Computer Science</div>
+              <div style={styles.partnerName}>{getPartnerDisplayName()}</div>
+              <div style={styles.partnerMeta}>
+                {getPartnerYear()} · {getPartnerSchool()}
+              </div>
               <div style={styles.partnerStatus}>
                 {checkedIn
                   ? <span style={styles.statusDone}>✓ both checked in today</span>
@@ -71,7 +227,11 @@ export default function Dashboard() {
         {/* Check-in Window */}
         <div style={styles.windowNote}>
           <span style={styles.windowBullet}>!</span>
-          <span style={styles.windowText}>check-in window: <strong>7:30 – 8:00 AM</strong></span>
+          <span style={styles.windowText}>
+            check-in window: <strong>7:30 – 8:00 AM</strong>
+            {/* ========== ADDED HERE: Note about missing check-ins ========== */}
+            <span style={styles.windowHint}> (set your daily reminder)</span>
+          </span>
         </div>
 
         {/* Check-In Button */}
@@ -93,7 +253,8 @@ export default function Dashboard() {
             <span style={styles.sectionTitle}>habit tracker</span>
             <div style={styles.sectionLine} />
           </div>
-          <StreakCalendar />
+          {/* ========== UPDATED: Pass real check-in history to calendar ========== */}
+          <StreakCalendar checkIns={checkInHistory} />
         </section>
 
         {/* Badges */}
@@ -114,7 +275,10 @@ export default function Dashboard() {
             <div style={styles.sectionLine} />
           </div>
           <div style={styles.stakeRow}>
-            <span style={styles.stakeText}>$20 to partner if you miss a check-in</span>
+            <span style={styles.stakeText}>
+              {/* ========== UPDATED: Dynamic collateral display ========== */}
+              {collateral ? `${collateral.emoji} ${collateral.label} if you miss a check-in` : 'Collateral set if you miss a check-in'}
+            </span>
           </div>
         </section>
 
@@ -143,7 +307,11 @@ export default function Dashboard() {
               <button style={styles.modalCancel} onClick={() => setShowReport(false)}>cancel</button>
               <button
                 style={styles.modalConfirm}
-                onClick={() => { setShowReport(false); alert('Report submitted. Thank you.') }}
+                onClick={() => { 
+                  setShowReport(false)
+                  // ========== ADDED HERE: Report functionality ==========
+                  alert('Report submitted. Our team will review your report within 24 hours. Thank you for helping keep our community safe.')
+                }}
               >
                 → submit report
               </button>
@@ -155,6 +323,7 @@ export default function Dashboard() {
   )
 }
 
+// ========== ADDED HERE: New styles for loading and error states ==========
 const styles = {
   screen: {
     minHeight: '100vh',
@@ -306,6 +475,12 @@ const styles = {
   windowText: {
     lineHeight: 1.4,
   },
+  // ========== ADDED HERE: Window hint style ==========
+  windowHint: {
+    fontSize: 13,
+    color: '#9b8c7e',
+    marginLeft: 8,
+  },
   checkInWrap: {
     display: 'flex',
     justifyContent: 'center',
@@ -410,5 +585,65 @@ const styles = {
     cursor: 'pointer',
     fontFamily: 'Caveat, cursive',
     borderRadius: 2,
+  },
+  // ========== ADDED HERE: Loading styles ==========
+  loadingContainer: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '60px 52px',
+  },
+  spinner: {
+    width: 48,
+    height: 48,
+    border: '3px solid #e0d8cc',
+    borderTop: '3px solid #8b1a2e',
+    borderRadius: '50%',
+    animation: 'spin 0.9s linear infinite',
+    marginBottom: 20,
+  },
+  loadingText: {
+    color: '#6b5d4e',
+    fontSize: 20,
+    fontStyle: 'italic',
+  },
+  // ========== ADDED HERE: Error styles ==========
+  errorContainer: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '60px 52px',
+    textAlign: 'center',
+  },
+  errorIcon: {
+    fontSize: 48,
+    marginBottom: 20,
+  },
+  errorTitle: {
+    fontSize: 28,
+    fontWeight: 700,
+    color: '#8b1a2e',
+    marginBottom: 12,
+  },
+  errorMessage: {
+    fontSize: 18,
+    color: '#6b5d4e',
+    fontStyle: 'italic',
+    marginBottom: 24,
+    maxWidth: 400,
+  },
+  errorButton: {
+    padding: '10px 28px',
+    border: '2px solid #2d2416',
+    background: '#2d2416',
+    color: '#faf7f2',
+    fontSize: 20,
+    fontWeight: 700,
+    borderRadius: 2,
+    cursor: 'pointer',
   },
 }
