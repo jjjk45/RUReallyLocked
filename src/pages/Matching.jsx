@@ -139,7 +139,6 @@ export default function Matching() {
 
   const profile = profiles[cardIndex]
 
-  // ========== ADDED HERE: Loading state while fetching from database ==========
   if (loading) {
     return (
       <div style={styles.loadingScreen}>
@@ -157,7 +156,6 @@ export default function Matching() {
     )
   }
 
-  // ========== ADDED HERE: No matches found state ==========
   if (phase === 'noMatches') {
     return (
       <div style={styles.matchedScreen}>
@@ -176,7 +174,6 @@ export default function Matching() {
     )
   }
 
-  // ========== ADDED HERE: Error state ==========
   if (phase === 'error') {
     return (
       <div style={styles.matchedScreen}>
@@ -344,7 +341,6 @@ function Dot({ delay }) {
   )
 }
 
-// ========== ADDED HERE: Keyframe animation for pulse ==========
 const keyframes = `
 @keyframes pulse {
   0%, 100% { opacity: 0.3; transform: scale(1); }

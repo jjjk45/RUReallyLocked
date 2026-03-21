@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState } from "react"
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useDatabase } from '../hooks/useDatabase'
@@ -58,22 +58,17 @@ export default function Signup() {
 
   return (
     <div style={styles.screen}>
-      <div style={styles.topBar}>
-        <button style={styles.backBtn} onClick={() => navigate('/')}>← back</button>
-      </div>
-
       <div style={styles.content}>
         <div style={styles.header}>
           <h1 style={styles.title}>Sign Up</h1>
           <div style={styles.accentLine} />
-          <p style={styles.sub}>join your rutgers accountability community</p>
         </div>
 
         <form style={styles.form} onSubmit={handleSubmit}>
 
           {/* ========== EXISTING FIELDS (unchanged) ========== */}
           {[
-            { name: 'full_name', label: 'full name', type: 'text', placeholder: 'Firstname Lastname' },
+            { name: 'full_name', label: 'full name', type: 'text', placeholder: 'firstname lastname' },
             { name: 'email', label: 'email', type: 'email', placeholder: 'abc123@scarletmail.rutgers.edu' },
             { name: 'password', label: 'password', type: 'password', placeholder: 'at least 8 characters' },
           ].map(field => (
@@ -98,7 +93,7 @@ export default function Signup() {
           <div style={styles.inputGroup}>
             <label style={styles.label}>school</label>
             <select
-              style={styles.select}
+              style={styles.input}
               name="school"
               value={form.school}
               onChange={handleChange}
@@ -171,13 +166,13 @@ export default function Signup() {
           )}
 
           <button style={{ ...styles.btn, opacity: loading ? 0.6 : 1 }} type="submit" disabled={loading}>
-            {loading ? 'setting up...' : '→ get started'}
+            {loading ? 'setting up...' : '→ create account'}
           </button>
         </form>
 
         <p style={styles.switchText}>
           already have an account?{' '}
-          <Link to="/" style={styles.link}>sign in</Link>
+          <Link to="/" style={styles.link}>log in</Link>
         </p>
       </div>
     </div>

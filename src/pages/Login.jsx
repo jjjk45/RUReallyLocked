@@ -10,17 +10,16 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // Fix: Add 'async' keyword here
   async function handleLogin(e) {
     e.preventDefault()
     setLoading(true)
-    setError('')  // Clear previous errors
+    setError('')  //clear any previous errors
 
     try {
       await signIn(email, password)
       navigate('/dashboard')
     } catch (error) {
-      setError(error.message)  // Show error message
+      setError(error.message)
     } finally {
       setLoading(false)
     }
@@ -29,14 +28,11 @@ export default function Login() {
   return (
     <div style={styles.screen}>
       <div style={styles.content}>
-
         <div style={styles.coverSection}>
-          <div style={styles.coverLabel}>ACCOUNTABILITY JOURNAL</div>
           <h1 style={styles.appName}>RUrllyLocked?</h1>
-          <div style={styles.accentBar} />
-          <p style={styles.tagline}>your accountability tested</p>
+          <p style={styles.tagline}>New Brunswickians</p>
           <div style={styles.stampWrap}>
-            <div style={styles.stamp}>est. 2025</div>
+            <div style={styles.stamp}>est. 2026</div>
           </div>
         </div>
 
@@ -46,7 +42,7 @@ export default function Login() {
             <input
               style={styles.input}
               type="email"
-              placeholder="you@rutgers.edu"
+              placeholder="abc123@scarletmail.rutgers.edu"
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
@@ -59,7 +55,7 @@ export default function Login() {
             <input
               style={styles.input}
               type="password"
-              placeholder="secret"
+              placeholder="secret code :o"
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
@@ -67,7 +63,6 @@ export default function Login() {
             <div style={styles.inputLine} />
           </div>
 
-          {/* 🔴 ADD ERROR DISPLAY HERE - Right before the button */}
           {error && (
             <div style={styles.errorMessage}>
               <span style={styles.errorIcon}>⚠️</span>
@@ -84,22 +79,11 @@ export default function Login() {
           new here?{' '}
           <Link to="/signup" style={styles.link}>create an account</Link>
         </p>
-
-        <div style={styles.decorLines}>
-          <div style={styles.decorLine} />
-          <div style={styles.decorLine} />
-          <div style={styles.decorLine} />
-        </div>
-      </div>
-
-      <div style={styles.footer}>
-        <span style={styles.footerText}>rutgers university · new brunswick, nj</span>
       </div>
     </div>
   )
 }
 
-// Add error message styles to your existing styles object
 const styles = {
   screen: {
     minHeight: '100vh',
@@ -118,27 +102,12 @@ const styles = {
   coverSection: {
     marginBottom: 44,
   },
-  coverLabel: {
-    fontSize: 11,
-    color: '#9b8c7e',
-    letterSpacing: '2.5px',
-    fontFamily: '-apple-system, sans-serif',
-    fontWeight: 600,
-    textTransform: 'uppercase',
-    marginBottom: 10,
-  },
   appName: {
     color: '#2d2416',
     fontSize: 52,
     fontWeight: 700,
     lineHeight: 1.05,
     marginBottom: 14,
-  },
-  accentBar: {
-    width: 60,
-    height: 3,
-    background: '#8b1a2e',
-    marginBottom: 12,
   },
   tagline: {
     color: '#6b5d4e',
@@ -158,29 +127,6 @@ const styles = {
     padding: '3px 12px',
     borderRadius: 2,
     letterSpacing: '1px',
-  },
-  divider: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 32,
-  },
-  dividerBullet: {
-    color: '#8b1a2e',
-    fontSize: 22,
-    fontWeight: 700,
-    flexShrink: 0,
-  },
-  dividerText: {
-    color: '#2d2416',
-    fontSize: 20,
-    fontStyle: 'italic',
-    flexShrink: 0,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    background: '#e0d8cc',
   },
   form: {
     display: 'flex',
@@ -232,7 +178,7 @@ const styles = {
     alignItems: 'center',
     gap: '8px',
     padding: '12px 16px',
-    background: '#fff5f5',
+    background: '#fff',
     borderLeft: '4px solid #8b1a2e',
     marginTop: '-8px',
     marginBottom: '-8px',
@@ -242,9 +188,9 @@ const styles = {
   },
   errorText: {
     color: '#8b1a2e',
-    fontSize: '14px',
+    fontSize: '18px',
     flex: 1,
-    fontFamily: '-apple-system, sans-serif',
+    fontFamily: 'Patrick Hand',
   },
   switchText: {
     color: '#6b5d4e',
@@ -257,30 +203,5 @@ const styles = {
     ':hover': {
       textDecoration: 'underline',
     },
-  },
-  decorLines: {
-    position: 'absolute',
-    bottom: 52,
-    right: 52,
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 10,
-    opacity: 0.35,
-  },
-  decorLine: {
-    width: 72,
-    height: 1,
-    background: '#c8bfb0',
-  },
-  footer: {
-    padding: '14px 52px',
-    borderTop: '1px solid #e0d8cc',
-  },
-  footerText: {
-    fontSize: 11,
-    color: '#9b8c7e',
-    fontFamily: '-apple-system, sans-serif',
-    letterSpacing: '1.5px',
-    textTransform: 'uppercase',
   },
 }
