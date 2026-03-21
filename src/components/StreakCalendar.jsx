@@ -113,7 +113,7 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontFamily: 'Caveat, cursive',
+    fontFamily: 'Patrick Hand',
     lineHeight: 1,
   },
   legend: {
