@@ -1,4 +1,5 @@
-﻿import { useEffect, useState } from 'react'
+﻿import os
+import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 
 export function useAuth() {
