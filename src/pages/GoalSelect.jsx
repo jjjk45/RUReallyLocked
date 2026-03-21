@@ -5,11 +5,11 @@ import { useAuth } from '../hooks/useAuth'
 import { useDatabase } from '../hooks/useDatabase'
 
 const GOALS = [
-  { id: 'gym', symbol: '◉', label: 'Gym', desc: 'build a consistent workout habit' },
-  { id: 'internships', symbol: '◉', label: 'Internships', desc: 'apply to opportunities daily' },
-  { id: 'coding', symbol: '◉', label: 'Coding', desc: 'practice & build projects' },
-  { id: 'studying', symbol: '◉', label: 'Studying', desc: 'stay on top of coursework' },
-  { id: 'wakeup', symbol: '◉', label: 'Waking Up Early', desc: 'build a morning routine' },
+  { id: 'gym', symbol: '◉', label: 'Gym', desc: 'everyday we gym' },
+  { id: 'internships', symbol: '◉', label: 'Internships', desc: 'apply everyday' },
+  { id: 'coding', symbol: '◉', label: 'Coding', desc: 'leetcode, personal, and class projects' },
+  { id: 'studying', symbol: '◉', label: 'Studying', desc: 'get the 4.0 semester' },
+  { id: 'wakeup', symbol: '◉', label: 'Waking Up Early', desc: 'fix your circadian rhythm' },
 ]
 
 export default function GoalSelect() {
@@ -17,7 +17,7 @@ export default function GoalSelect() {
   // ========== ADDED HERE: Get user and database functions ==========
   const { user } = useAuth()
   const { saveGoal } = useDatabase()
-  
+
   const [selected, setSelected] = useState(null)
   // ========== ADDED HERE: Loading state for button ==========
   const [loading, setLoading] = useState(false)
@@ -27,21 +27,21 @@ export default function GoalSelect() {
   // ========== ADDED HERE: Completely replace handleContinue with async version ==========
   async function handleContinue() {
     if (!selected) return
-    
+
     // Get collateral from localStorage (set in CollateralSelect)
     const collateral = localStorage.getItem('rul_collateral') || 'money'
-    
+
     setLoading(true)
     setError('')
-    
+
     try {
       // Save goal to database
       await saveGoal(user.id, selected, collateral)
-      
+
       // Store in localStorage for quick access
       localStorage.setItem('rul_goal', selected)
       localStorage.setItem('rul_collateral', collateral)
-      
+
       // Navigate to matching page
       navigate('/matching')
     } catch (error) {
@@ -72,10 +72,9 @@ export default function GoalSelect() {
 
       <div style={styles.content}>
         <div style={styles.header}>
-          <div style={styles.headerLabel}>goals collection</div>
           <h1 style={styles.title}>What are you working on?</h1>
           <div style={styles.accentLine} />
-          <p style={styles.sub}>pick one goal — your partner will share the same one.</p>
+          <p style={styles.sub}>pick a goal to work on daily</p>
         </div>
 
         <div style={styles.sectionDivider}>
@@ -108,7 +107,7 @@ export default function GoalSelect() {
             )
           })}
         </div>
-        
+
         {/* ========== ADDED HERE: Error message display ========== */}
         {error && (
           <div style={styles.errorMessage}>

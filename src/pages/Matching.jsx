@@ -10,6 +10,7 @@ const GOAL_LABELS = {
   coding: { label: 'Coding' },
   studying: { label: 'Studying' },
   wakeup: { label: 'Waking Up Early' },
+  calling: { label: 'Calling Parents' }
 }
 
 // ========== COMMENTED OUT FAKE_PROFILES - Will use real data from database ==========
@@ -54,7 +55,7 @@ export default function Matching() {
   // ========== ADDED HERE: Get user and database functions ==========
   const { user } = useAuth()
   const { findPotentialPartners, createPartnership } = useDatabase()
-  
+
   const [phase, setPhase] = useState('loading')
   const [cardIndex, setCardIndex] = useState(0)
   const [swipeDir, setSwipeDir] = useState(null)
@@ -62,7 +63,7 @@ export default function Matching() {
   const [profiles, setProfiles] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  
+
   const goal = localStorage.getItem('rul_goal') || 'gym'
   const goalInfo = GOAL_LABELS[goal] || GOAL_LABELS.gym
 
@@ -70,11 +71,11 @@ export default function Matching() {
   useEffect(() => {
     async function loadPartners() {
       if (!user) return
-      
+
       try {
         setLoading(true)
         const partners = await findPotentialPartners(user.id, goal)
-        
+
         // Transform database results to match profile format
         const formattedProfiles = partners.map(p => ({
           name: p.profiles?.full_name || 'Anonymous',
@@ -86,9 +87,9 @@ export default function Matching() {
           userId: p.user_id,
           collateralType: p.collateral_type
         }))
-        
+
         setProfiles(formattedProfiles)
-        
+
         if (formattedProfiles.length === 0) {
           setPhase('noMatches')
         } else {
@@ -102,12 +103,12 @@ export default function Matching() {
         setLoading(false)
       }
     }
-    
+
     // ========== ADDED HERE: Short delay to show loading animation ==========
     const timer = setTimeout(() => {
       loadPartners()
     }, 800)
-    
+
     return () => clearTimeout(timer)
   }, [user, goal])
 
@@ -126,12 +127,12 @@ export default function Matching() {
   // ========== REPLACED handleAccept with async version ==========
   async function handleAccept() {
     if (!profiles[cardIndex]) return
-    
+
     setSwipeDir('right')
     try {
       // Create partnership in database
       await createPartnership(user.id, profiles[cardIndex].userId, goal)
-      
+
       setTimeout(() => {
         setPhase('matched')
       }, 400)
@@ -346,7 +347,7 @@ export default function Matching() {
       </div>
 
       <p style={styles.disclaimer}>
-        you can <span style={styles.reportLink}>report a partner</span> at any time.
+        you can <span style={styles.reportLink} onClick={() => setShowReport(true)}>report a partner</span> at any time.
       </p>
     </div>
   )
