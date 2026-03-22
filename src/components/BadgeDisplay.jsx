@@ -1,8 +1,8 @@
 const BADGES = [
   { id: 'week',    label: '7-day streak',     sub: 'one full week',          required: 7  },
-  { id: 'twoweek', label: '14-day streak',    sub: 'two weeks strong',       required: 14 },
-  { id: 'month',   label: '30-day streak',    sub: 'a whole month',          required: 30 },
-  { id: 'partner', label: '60-day partner',   sub: 'habit formed',           required: 60 },
+  { id: 'twoweek', label: '14-day streak',    sub: 'one plus one is...',           required: 14 },
+  { id: 'month',   label: '30-day streak',    sub: 'three oh',               required: 30 },
+  { id: 'partner', label: '60-day streak',   sub: 'habit formed :o',        required: 60 },
 ]
 
 export default function BadgeDisplay({ streak = 5 }) {
@@ -18,7 +18,7 @@ export default function BadgeDisplay({ streak = 5 }) {
               title={earned ? b.label : `locked — reach ${b.required}-day streak`}
             >
               <div style={{ ...styles.stampCircle, ...(earned ? styles.stampEarned : styles.stampLocked) }}>
-                <span style={styles.stampNum}>{b.required}d</span>
+                <span style={styles.stampNum}>{b.required}</span>
               </div>
               <span style={{ ...styles.badgeLabel, color: earned ? '#2d2416' : '#c8bfb0' }}>
                 {b.label}

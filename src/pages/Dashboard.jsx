@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Navigate } from 'react-router-dom'
 import CheckInButton from '../components/CheckInButton'
 import StreakCalendar from '../components/StreakCalendar'
 import BadgeDisplay from '../components/BadgeDisplay'
@@ -17,10 +18,10 @@ export default function Dashboard() {
     getCurrentStreak,
     getCheckInHistory,
     checkMissedCheckIns,
-    getUserGoal
+    getUserGoalAndCollateral
   } = useDatabase()
 
-  const [partnership, setPartnership] = useState(null)
+  const [partnership, setPartnership] = useState(null) //I want to combine a lot of these into objects, will do later
   const [partner, setPartner] = useState(null)
   const [streak, setStreak] = useState(0)
   const [checkedIn, setCheckedIn] = useState(false)
@@ -30,20 +31,20 @@ export default function Dashboard() {
   const [showReport, setShowReport] = useState(false)
   const [collateral, setCollateral] = useState(null)
   const [goalLabel, setGoalLabel] = useState('')
+  const [partnerCollateral, setPartnerCollateral] = useState(null)
+  const [userOwesCollateral, setUserOwesCollateral] = useState(false)
+  const [partnerOwesCollateral, setPartnerOwesCollateral] = useState(false)
 
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'long', month: 'long', day: 'numeric'
   })
 
-  useEffect(() => {
+  useEffect(() => { //holy shit this function is gross
     async function loadDashboardData() {
-      if (!user) return
-
+      if (!user) { return; } //should this throw an error?
       try {
         setLoading(true)
-
         const activePartnership = await getActivePartnership(user.id)
-
         if (activePartnership) {
           setPartnership(activePartnership)
           setGoalLabel(GOAL_LABELS[activePartnership.goal_type] || 'Gym')
@@ -63,18 +64,30 @@ export default function Dashboard() {
           const todayCheckIn = history.find(h => h.date === todayStr)
           setCheckedIn(!!todayCheckIn)
 
-          await checkMissedCheckIns(activePartnership.id, user.id)
+          await checkMissedCheckIns(activePartnership.id, user.id) //checks yesterday
+          //await checkMissedCheckIns(activePartnership.id, user.id) //can't add this until the function can check if a row already exists before adding a new one for a certain date
 
-          const goalData = await getUserGoal(user.id)
-          const collateralType = goalData?.collateral_type || 'money'
+          const goalData = await getUserGoalAndCollateral(user.id)
+          const collateralType = goalData?.collateral_type || 'money' //should we maybe not have this default to money?
           setCollateral({
             emoji: COLLATERAL_EMOJIS[collateralType] || COLLATERAL_EMOJIS.money,
             label: COLLATERAL_LABELS[collateralType] || COLLATERAL_LABELS.money,
           })
+          const partnerGoalData = await getUserGoalAndCollateral(partnerUser.id)
+          const partnerCollateralType = partnerGoalData?.collateral_type || 'money'
+          setPartnerCollateral({
+            emoji: COLLATERAL_EMOJIS[partnerCollateralType] || COLLATERAL_EMOJIS.money,
+            label: COLLATERAL_LABELS[partnerCollateralType] || COLLATERAL_LABELS.money,
+          })
+
+          const userPendingCollateral = await getPendingCollateral(activePartnership.id, user.id)
+          const partnerPendingCollateral = await getPendingCollateral(activePartnership.id, partnerUser.id)
+          setUserOwesCollateral(userPendingCollateral)
+          setPartnerOwesCollateral(partnerPendingCollateral)
         } else {
           setError('No active partnership found. Please find a partner first.')
         }
-      } catch (error) {
+      } catch(error) {
         console.error('Error loading dashboard:', error)
         setError(error.message || 'Failed to load dashboard data')
       } finally {
@@ -86,8 +99,9 @@ export default function Dashboard() {
   }, [user])
 
   async function handleCheckIn() {
-    if (!partnership || checkedIn) return
-
+    if (!partnership || checkedIn) {
+      return;
+    }
     try {
       const result = await recordCheckIn(partnership.id, user.id)
       setCheckedIn(true)
@@ -104,7 +118,6 @@ export default function Dashboard() {
       setError(error.message || 'Failed to check in. Please try again.')
     }
   }
-
   if (loading) {
     return (
       <div style={styles.screen}>
@@ -123,7 +136,7 @@ export default function Dashboard() {
           <div style={styles.errorIcon}>⚠️</div>
           <h2 style={styles.errorTitle}>No Active Partnership</h2>
           <p style={styles.errorMessage}>{error}</p>
-          <button style={styles.errorButton} onClick={() => window.location.href = '/matching'}>
+          <button style={styles.errorButton} onClick={() => Navigate('/matching')}>
             → find a partner
           </button>
         </div>
@@ -158,11 +171,11 @@ export default function Dashboard() {
             <div style={styles.partnerInfo}>
               <div style={styles.partnerName}>{partner?.full_name || 'Accountability Partner'}</div>
               <div style={styles.partnerMeta}>
-                {partner?.year || 'Unknown'} · {partner?.school || 'Unknown'}
+                {partner?.year || 'Unknown'} · {partner?.major || 'Unknown'} · {partner?.school || 'Unknown'}
               </div>
               <div style={styles.partnerStatus}>
                 {checkedIn
-                  ? <span style={styles.statusDone}>✓ both checked in today</span>
+                  ? <span style={styles.statusDone}>✓ you checked in</span>
                   : <span style={styles.statusWaiting}>○ waiting on today's check-in</span>
                 }
               </div>
@@ -175,11 +188,46 @@ export default function Dashboard() {
         </section>
 
         {/* Check-in Window */}
-        <div style={styles.windowNote}>
-          <span style={styles.windowText}>
-            check-in window: <strong>7:30 – 8:00 AM</strong>
-          </span>
-        </div>
+        {!checkedIn && (
+          <div style={styles.windowNote}>
+            <span style={styles.windowText}>
+              check-in window: <strong>7:30 – 8:00 AM</strong>
+            </span>
+          </div>
+        )}
+
+        {/* Conditional Collateral Sections*/}
+        {userOwesCollateral && (
+          <section style={styles.section}>
+            <div style={styles.sectionHead}>
+              <span style={styles.bullet}>•</span>
+              <span style={styles.sectionTitle}>you owe collateral</span>
+              <div style={styles.sectionLine} />
+            </div>
+            <div style={styles.collateralAlert}>
+              <div style={styles.collateralAlertTitle}>you missed a check-in</div>
+              <div style={styles.collateralAlertBody}>
+                you owe your partner: <strong>{collateral ? `${collateral.emoji} ${collateral.label}` : 'collateral'}</strong>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {partnerOwesCollateral && (
+          <section style={styles.section}>
+            <div style={styles.sectionHead}>
+              <span style={styles.bullet}>•</span>
+              <span style={styles.sectionTitle}>your partner owes collateral</span>
+              <div style={styles.sectionLine} />
+            </div>
+            <div style={styles.collateralNotice}>
+              <div style={styles.collateralNoticeTitle}>{partner?.full_name?.split(' ')[0] || 'your partner'} missed a check-in</div>
+              <div style={styles.collateralNoticeBody}>
+                they owe you: <strong>{partnerCollateral ? `${partnerCollateral.emoji} ${partnerCollateral.label}` : 'collateral'}</strong>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Check-In Button */}
         <section style={styles.section}>
@@ -217,7 +265,7 @@ export default function Dashboard() {
         <section style={styles.section}>
           <div style={styles.sectionHead}>
             <span style={styles.bullet}>•</span>
-            <span style={styles.sectionTitle}>your stake</span>
+            <span style={styles.sectionTitle}>your collateral</span>
             <div style={styles.sectionLine} />
           </div>
           <div style={styles.stakeRow}>
@@ -413,6 +461,40 @@ const styles = {
   },
   stakeText: {
     fontSize: 19,
+    color: '#4a3f35',
+    fontStyle: 'italic',
+  },
+  collateralAlert: {
+    padding: '16px 20px',
+    background: '#fdf3f4',
+    border: '1px solid #e0d8cc',
+    borderLeft: '3px solid #8b1a2e',
+  },
+  collateralAlertTitle: {
+    fontSize: 17,
+    fontWeight: 700,
+    color: '#8b1a2e',
+    marginBottom: 4,
+  },
+  collateralAlertBody: {
+    fontSize: 16,
+    color: '#4a3f35',
+    fontStyle: 'italic',
+  },
+  collateralNotice: {
+    padding: '16px 20px',
+    background: '#f5ede8',
+    border: '1px solid #e0d8cc',
+    borderLeft: '3px solid #8b5e3c',
+  },
+  collateralNoticeTitle: {
+    fontSize: 17,
+    fontWeight: 700,
+    color: '#8b5e3c',
+    marginBottom: 4,
+  },
+  collateralNoticeBody: {
+    fontSize: 16,
     color: '#4a3f35',
     fontStyle: 'italic',
   },

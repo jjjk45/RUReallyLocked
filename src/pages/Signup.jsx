@@ -188,35 +188,12 @@ const styles = {
     flexDirection: 'column',
     paddingLeft: 6,
   },
-  topBar: {
-    padding: '20px 52px 0',
-    borderBottom: '1px solid #e0d8cc',
-    paddingBottom: 16,
-  },
-  backBtn: {
-    background: 'transparent',
-    border: 'none',
-    color: '#8b1a2e',
-    fontSize: 20,
-    fontFamily: 'Patrick Hand',
-    cursor: 'pointer',
-    padding: 0,
-  },
   content: {
     flex: 1,
     padding: '44px 52px 40px',
   },
   header: {
     marginBottom: 40,
-  },
-  headerLabel: {
-    fontSize: 11,
-    color: '#9b8c7e',
-    letterSpacing: '2.5px',
-    fontFamily: '-apple-system, sans-serif',
-    fontWeight: 600,
-    textTransform: 'uppercase',
-    marginBottom: 8,
   },
   title: {
     color: '#2d2416',
@@ -230,11 +207,6 @@ const styles = {
     height: 3,
     background: '#8b1a2e',
     marginBottom: 10,
-  },
-  sub: {
-    color: '#6b5d4e',
-    fontSize: 19,
-    fontStyle: 'italic',
   },
   form: {
     display: 'flex',
@@ -281,18 +253,6 @@ const styles = {
     fontSize: 11,
     color: '#9b8c7e',
     marginTop: 4,
-  },
-  select: {
-    width: '100%',
-    padding: '6px 0',
-    border: 'none',
-    background: 'transparent',
-    color: '#2d2416',
-    fontSize: 22,
-    fontFamily: 'Patrick Hand',
-    cursor: 'pointer',
-    appearance: 'none',
-    WebkitAppearance: 'none',
   },
   radioGroup: {
     display: 'flex',

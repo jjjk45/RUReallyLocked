@@ -173,8 +173,8 @@ export function useDatabase() {
       .from('partnerships')
       .select(`
         *,
-        user1:user1_id (full_name, school, year),
-        user2:user2_id (full_name, school, year)
+        user1:user1_id (full_name, school, year, major),
+        user2:user2_id (full_name, school, year, major)
       `)
       .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
       .eq('status', 'active')
@@ -227,7 +227,7 @@ export function useDatabase() {
     return data[0]
   }
 
-  const getUserGoal = async (userId) => {
+  const getUserGoalAndCollateral = async (userId) => {
     const { data, error } = await supabase
       .from('goals')
       .select('goal_type, collateral_type')
@@ -240,26 +240,38 @@ export function useDatabase() {
     return data
   }
 
-  //run this on login or periodically
-  const checkMissedCheckIns = async (partnershipId, userId) => {
-    const yesterday = new Date()
-    yesterday.setDate(yesterday.getDate() - 1)
-    const yesterdayStr = yesterday.toISOString().split('T')[0]
+  //need to think up a smart way to run this once every day
+  const checkMissedCheckIns = async (partnershipId, userId, daysAgo = 1) => { //daysAgo for catching up, risky though
+    const date = new Date()
+    date.setDate(date.getDate() - daysAgo)
+    const dateStr = date.toISOString().split('T')[0]
 
     const { data: checkIn } = await supabase
       .from('check_ins')
       .select()
       .eq('partnership_id', partnershipId)
       .eq('user_id', userId)
-      .eq('date', yesterdayStr)
+      .eq('date', dateStr)
 
     if (!checkIn || checkIn.length === 0) {
-      // Missed yesterday's check-in
-      await reportMissedCheckIn(partnershipId, userId)
+      await reportMissedCheckIn(partnershipId, userId) //creates a new db row
       return true
     }
 
     return false
+  }
+
+  //run AFTER checkMissingCheckIns
+  const getPendingCollateral = async (partnershipId, userId) => {
+    const { data, error } = await supabase
+      .from('collateral_owed')
+      .select()
+      .eq('partnership_id', partnershipId)
+      .eq('user_id', userId)
+      .eq('status', 'pending')
+
+    if (error) throw error
+    return data.length > 0
   }
 
   return {
@@ -275,6 +287,7 @@ export function useDatabase() {
     reportMissedCheckIn,
     markCollateralPaid,
     checkMissedCheckIns,
-    getUserGoal
+    getUserGoalAndCollateral,
+    getPendingCollateral
   }
 }

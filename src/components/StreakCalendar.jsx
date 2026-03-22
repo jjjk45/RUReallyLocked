@@ -75,7 +75,7 @@ export default function StreakCalendar({ checkIns = [] }) {
                 key={di}
                 style={{
                   ...styles.cell,
-                  backgroundColor: isHovered ? '#f0f0f0' : bg,
+                  backgroundColor: isHovered ? '#faf7f2' : bg,
                   border: `2px ${borderStyle} ${borderColor}`,
                   color: isHovered ? '#000' : color,
                   transform: isHovered ? `scale(1.12) rotate(${Math.floor(Math.random() * 10) - 5}deg)` : 'scale(1) rotate(0deg)',

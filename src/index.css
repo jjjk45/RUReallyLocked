@@ -65,14 +65,3 @@ a {
   50% { transform: scale(1.4); opacity: 1; }
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Ruled line utility */
-.ruled {
-  width: 100%;
-  height: 1px;
-  background: #e0d8cc;
-}
