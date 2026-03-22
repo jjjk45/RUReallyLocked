@@ -4,7 +4,7 @@ import { GOALS } from '../types/goals'
 
 export default function GoalSelect() {
   const navigate = useNavigate()
-const [selected, setSelected] = useState(null)
+  const [selected, setSelected] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -16,7 +16,6 @@ const [selected, setSelected] = useState(null)
 
     try {
       localStorage.setItem('rul_goal', selected)
-
       navigate('/collateral')
 
     } catch (error) {

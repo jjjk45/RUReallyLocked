@@ -21,18 +21,26 @@ export default function Dashboard() {
 
   // ========== ADDED HERE: State for real data ==========
   const [partnership, setPartnership] = useState(null)
-  const [partner, setPartner] = useState(null)
   const [streak, setStreak] = useState(0)
   const [checkedIn, setCheckedIn] = useState(false)
   const [checkInHistory, setCheckInHistory] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [showReport, setShowReport] = useState(false)
-  const [collateral, setCollateral] = useState(null)
 
-  // ========== ADDED HERE: Get goal from localStorage (set during goal selection) ==========
+  // ========== ADDED HERE: Get goal and collateral from localStorage ==========
   const goal = localStorage.getItem('rul_goal') || 'gym'
   const goalLabel = GOAL_LABELS[goal] || 'Gym'
+
+  const collateralType = localStorage.getItem('rul_collateral') || 'money'
+  const collateral = {
+    emoji: COLLATERAL_EMOJIS[collateralType] || COLLATERAL_EMOJIS.money,
+    label: COLLATERAL_LABELS[collateralType] || COLLATERAL_LABELS.money,
+  }
+
+  const partner = partnership
+    ? (partnership.user1_id === user.id ? partnership.user2 : partnership.user1)
+    : null
 
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'long', month: 'long', day: 'numeric'
@@ -52,12 +60,6 @@ export default function Dashboard() {
         if (activePartnership) {
           setPartnership(activePartnership)
 
-          // Determine who the partner is (not the current user)
-          const partnerUser = activePartnership.user1_id === user.id
-            ? activePartnership.user2
-            : activePartnership.user1
-          setPartner(partnerUser)
-
           // Get current streak
           const currentStreak = await getCurrentStreak(activePartnership.id, user.id)
           setStreak(currentStreak)
@@ -69,30 +71,26 @@ export default function Dashboard() {
           // Check if already checked in today
           const todayStr = new Date().toISOString().split('T')[0]
           const todayCheckIn = history.find(h => h.date === todayStr)
+          //setCheckedIn(false) //revert to !!todayCheckIn later
           setCheckedIn(!!todayCheckIn)
 
           // Check for missed check-ins (from yesterday)
           await checkMissedCheckIns(activePartnership.id, user.id)
 
-          // Get collateral from goal (stored in localStorage)
-          const collateralType = localStorage.getItem('rul_collateral') || 'money'
-          setCollateral({
-            emoji: COLLATERAL_EMOJIS[collateralType] || COLLATERAL_EMOJIS.money,
-            label: COLLATERAL_LABELS[collateralType] || COLLATERAL_LABELS.money,
-          })
         } else {
           // No active partnership - user might need to find a partner
           setError('No active partnership found. Please find a partner first.')
         }
-      } catch (error) {
-        console.error('Error loading dashboard:', error)
-        setError(error.message || 'Failed to load dashboard data')
+      } catch (err) {
+        console.error('Error loading dashboard:', err)
+        setError(err.message || 'Failed to load dashboard data')
       } finally {
         setLoading(false)
       }
     }
 
     loadDashboardData()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
 
   // ========== ADDED HERE: Updated check-in handler ==========
@@ -113,9 +111,9 @@ export default function Dashboard() {
         // Optional: Show a toast notification
         console.log('Both partners checked in today!')
       }
-    } catch (error) {
-      console.error('Error checking in:', error)
-      setError(error.message || 'Failed to check in. Please try again.')
+    } catch (err) {
+      console.error('Error checking in:', err)
+      setError(err.message || 'Failed to check in. Please try again.')
     }
   }
 
@@ -214,11 +212,9 @@ export default function Dashboard() {
 
         {/* Check-in Window */}
         <div style={styles.windowNote}>
-          <span style={styles.windowBullet}>!</span>
           <span style={styles.windowText}>
             check-in window: <strong>7:30 – 8:00 AM</strong>
-            {/* ========== ADDED HERE: Note about missing check-ins ========== */}
-            <span style={styles.windowHint}> (set your daily reminder)</span>
+            <span style={styles.windowHint}></span>
           </span>
         </div>
 
@@ -433,12 +429,6 @@ const styles = {
     fontSize: 17,
     color: '#4a3f35',
     fontStyle: 'italic',
-  },
-  windowBullet: {
-    color: '#8b5e3c',
-    fontWeight: 700,
-    fontSize: 18,
-    flexShrink: 0,
   },
   windowText: {
     lineHeight: 1.4,

@@ -17,7 +17,7 @@ export default function Matching() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  const goal = localStorage.getItem('rul_goal') || 'gym'
+  const goal = localStorage.getItem('rul_goal') || 'gym' //CHANGE THIS IMMEDIATELY
   const goalInfo = GOAL_LABELS[goal] || GOAL_LABELS.gym
 
   useEffect(() => {
@@ -137,7 +137,7 @@ export default function Matching() {
     )
   }
 
-  if (phase === 'matched') {
+  if (phase === 'matched') {  //make this not a heart, make it arm wrestling because that is cool
     return (
       <div style={styles.matchedScreen}>
         <div style={styles.matchedInner}>
@@ -272,42 +272,41 @@ export default function Matching() {
   }
 
   function Dot({ delay }) {
-  return (
-    <div
-      style={{
-        width: 8,
-        height: 8,
-        borderRadius: '50%',
-        background: '#8b1a2e',
-        animation: `pulse 1s ${delay}s infinite`,
-      }}
-    />
-  )
+    return (
+      <div
+        style={{
+          width: 8,
+          height: 8,
+          borderRadius: '50%',
+          background: '#8b1a2e',
+          animation: `pulse 1s ${delay}s infinite`,
+        }}
+      />
+    )
   }
 
   const keyframes = `
-  @keyframes pulse {
-    0%, 100% { opacity: 0.3; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.2); }
-  }
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-  @keyframes slide-left {
-    0% { transform: translateX(0); opacity: 1; }
-    100% { transform: translateX(-40px); opacity: 0; }
-  }
-  @keyframes slide-right {
-    0% { transform: translateX(0); opacity: 1; }
-    100% { transform: translateX(40px); opacity: 0; }
-  }
-  `
+    @keyframes pulse {
+      0%, 100% { opacity: 0.3; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.2); }
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes slide-left {
+      0% { transform: translateX(0); opacity: 1; }
+      100% { transform: translateX(-40px); opacity: 0; }
+    }
+    @keyframes slide-right {
+      0% { transform: translateX(0); opacity: 1; }
+      100% { transform: translateX(40px); opacity: 0; }
+    }`
 
   if (typeof document !== 'undefined') {
-  const style = document.createElement('style')
-  style.textContent = keyframes
-  document.head.appendChild(style)
+    const style = document.createElement('style')
+    style.textContent = keyframes
+    document.head.appendChild(style)
   }
 
   const styles = {
