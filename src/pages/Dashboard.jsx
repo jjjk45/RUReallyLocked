@@ -1,15 +1,31 @@
-import { useState, useEffect } from 'react'  // ========== ADDED: useEffect ==========
+import { useState, useEffect } from 'react'
 import CheckInButton from '../components/CheckInButton'
 import StreakCalendar from '../components/StreakCalendar'
 import BadgeDisplay from '../components/BadgeDisplay'
 import { useAuth } from '../hooks/useAuth'
 import { useDatabase } from '../hooks/useDatabase'
 import ReportPopup from '../components/ReportPopup'
-import { GOAL_LABELS } from '../types/goals'
-import { COLLATERAL_LABELS, COLLATERAL_EMOJIS } from '../types/collaterals'
+// ========== ADDED HERE: Chat imports ==========
+import ChatToggle from '../components/ChatToggle'
+import { useUnreadCount } from '../hooks/useUnreadCount'
+
+const GOAL_LABELS = {
+  gym: 'Gym',
+  internships: 'Internships',
+  coding: 'Coding',
+  studying: 'Studying',
+  wakeup: 'Waking Up Early',
+}
+
+const COLLATERAL_LABELS = {
+  money: { emoji: '💵', label: '$20 to partner' },
+  meal: { emoji: '🍕', label: 'Owe them a meal' },
+  mile: { emoji: '🏃', label: 'Run a mile' },
+  bathroom: { emoji: '🧹', label: 'Clean their bathroom/kitchen' },
+  dishes: { emoji: '🍽️', label: 'Do their dishes' },
+}
 
 export default function Dashboard() {
-  // ========== ADDED HERE: Auth and database hooks ==========
   const { user } = useAuth()
   const {
     getActivePartnership,
@@ -19,34 +35,47 @@ export default function Dashboard() {
     checkMissedCheckIns
   } = useDatabase()
 
-  // ========== ADDED HERE: State for real data ==========
   const [partnership, setPartnership] = useState(null)
+  const [partner, setPartner] = useState(null)
   const [streak, setStreak] = useState(0)
   const [checkedIn, setCheckedIn] = useState(false)
   const [checkInHistory, setCheckInHistory] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [showReport, setShowReport] = useState(false)
+  const [collateral, setCollateral] = useState(null)
+  // ========== ADDED HERE: Chat state ==========
+  const [conversationId, setConversationId] = useState(null)
 
-  // ========== ADDED HERE: Get goal and collateral from localStorage ==========
   const goal = localStorage.getItem('rul_goal') || 'gym'
   const goalLabel = GOAL_LABELS[goal] || 'Gym'
-
-  const collateralType = localStorage.getItem('rul_collateral') || 'money'
-  const collateral = {
-    emoji: COLLATERAL_EMOJIS[collateralType] || COLLATERAL_EMOJIS.money,
-    label: COLLATERAL_LABELS[collateralType] || COLLATERAL_LABELS.money,
-  }
-
-  const partner = partnership
-    ? (partnership.user1_id === user.id ? partnership.user2 : partnership.user1)
-    : null
 
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'long', month: 'long', day: 'numeric'
   })
 
-  // ========== ADDED HERE: Load dashboard data from database ==========
+  // ========== ADDED HERE: Get conversation ID for unread count ==========
+  useEffect(() => {
+    async function getConversationId() {
+      if (!partnership) return
+      
+      const { data, error } = await supabase
+        .from('conversations')
+        .select('id')
+        .eq('partnership_id', partnership.id)
+        .maybeSingle()
+      
+      if (!error && data) {
+        setConversationId(data.id)
+      }
+    }
+    
+    getConversationId()
+  }, [partnership])
+
+  // ========== ADDED HERE: Unread message count ==========
+  const unreadCount = useUnreadCount(user?.id, conversationId)
+
   useEffect(() => {
     async function loadDashboardData() {
       if (!user) return
@@ -54,46 +83,44 @@ export default function Dashboard() {
       try {
         setLoading(true)
 
-        // Get active partnership
         const activePartnership = await getActivePartnership(user.id)
 
         if (activePartnership) {
           setPartnership(activePartnership)
 
-          // Get current streak
+          const partnerUser = activePartnership.user1_id === user.id
+            ? activePartnership.user2
+            : activePartnership.user1
+          setPartner(partnerUser)
+
           const currentStreak = await getCurrentStreak(activePartnership.id, user.id)
           setStreak(currentStreak)
 
-          // Get check-in history for calendar
           const history = await getCheckInHistory(activePartnership.id, user.id)
           setCheckInHistory(history)
 
-          // Check if already checked in today
           const todayStr = new Date().toISOString().split('T')[0]
           const todayCheckIn = history.find(h => h.date === todayStr)
-          //setCheckedIn(false) //revert to !!todayCheckIn later
           setCheckedIn(!!todayCheckIn)
 
-          // Check for missed check-ins (from yesterday)
           await checkMissedCheckIns(activePartnership.id, user.id)
 
+          const collateralType = localStorage.getItem('rul_collateral') || 'money'
+          setCollateral(COLLATERAL_LABELS[collateralType] || COLLATERAL_LABELS.money)
         } else {
-          // No active partnership - user might need to find a partner
           setError('No active partnership found. Please find a partner first.')
         }
-      } catch (err) {
-        console.error('Error loading dashboard:', err)
-        setError(err.message || 'Failed to load dashboard data')
+      } catch (error) {
+        console.error('Error loading dashboard:', error)
+        setError(error.message || 'Failed to load dashboard data')
       } finally {
         setLoading(false)
       }
     }
 
     loadDashboardData()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
 
-  // ========== ADDED HERE: Updated check-in handler ==========
   async function handleCheckIn() {
     if (!partnership || checkedIn) return
 
@@ -102,18 +129,15 @@ export default function Dashboard() {
       setCheckedIn(true)
       setStreak(prev => prev + 1)
 
-      // Refresh check-in history
       const updatedHistory = await getCheckInHistory(partnership.id, user.id)
       setCheckInHistory(updatedHistory)
 
-      // If both partners checked in, could show a notification
       if (result.bothCheckedIn) {
-        // Optional: Show a toast notification
         console.log('Both partners checked in today!')
       }
-    } catch (err) {
-      console.error('Error checking in:', err)
-      setError(err.message || 'Failed to check in. Please try again.')
+    } catch (error) {
+      console.error('Error checking in:', error)
+      setError(error.message || 'Failed to check in. Please try again.')
     }
   }
 
@@ -123,7 +147,6 @@ export default function Dashboard() {
   //   setStreak(s => s + 1)
   // }
 
-  // ========== ADDED HERE: Helper to format partner info ==========
   const getPartnerDisplayName = () => {
     if (!partner) return 'Finding partner...'
     return partner.full_name || 'Accountability Partner'
@@ -131,20 +154,14 @@ export default function Dashboard() {
 
   const getPartnerYear = () => {
     if (!partner) return ''
-    return partner.year || 'Unknown'
+    return partner.year || 'Student'
   }
 
   const getPartnerSchool = () => {
     if (!partner) return ''
-    return partner.school || 'Unknown'
+    return partner.school || 'Rutgers University'
   }
 
-  const getPartnerMajor = () => {
-    if(!partner) return ''
-    return partner.major || 'Unknown'
-  }
-
-  // ========== ADDED HERE: Loading state ==========
   if (loading) {
     return (
       <div style={styles.screen}>
@@ -156,7 +173,6 @@ export default function Dashboard() {
     )
   }
 
-  // ========== ADDED HERE: Error state ==========
   if (error && !partnership) {
     return (
       <div style={styles.screen}>
@@ -199,7 +215,7 @@ export default function Dashboard() {
             <div style={styles.partnerInfo}>
               <div style={styles.partnerName}>{getPartnerDisplayName()}</div>
               <div style={styles.partnerMeta}>
-                {getPartnerYear()} · {getPartnerMajor()} · {getPartnerSchool()}
+                {getPartnerYear()} · {getPartnerSchool()}
               </div>
               <div style={styles.partnerStatus}>
                 {checkedIn
@@ -217,9 +233,10 @@ export default function Dashboard() {
 
         {/* Check-in Window */}
         <div style={styles.windowNote}>
+          <span style={styles.windowBullet}>!</span>
           <span style={styles.windowText}>
             check-in window: <strong>7:30 – 8:00 AM</strong>
-            <span style={styles.windowHint}></span>
+            <span style={styles.windowHint}> (set your daily reminder)</span>
           </span>
         </div>
 
@@ -264,7 +281,6 @@ export default function Dashboard() {
           </div>
           <div style={styles.stakeRow}>
             <span style={styles.stakeText}>
-              {/* ========== UPDATED: Dynamic collateral display ========== */}
               {collateral ? `${collateral.emoji} ${collateral.label} if you miss a check-in` : 'Collateral set if you miss a check-in'}
             </span>
           </div>
@@ -288,11 +304,20 @@ export default function Dashboard() {
           alert('Report submitted. Our team will review your report within 24 hours. Thank you for helping keep our community safe.')
         }}
       />
+
+      {/* ========== ADDED HERE: Chat Toggle Button ========== */}
+      {partnership && partner && (
+        <ChatToggle
+          partnership={partnership}
+          currentUser={user}
+          partner={partner}
+          unreadCount={unreadCount}
+        />
+      )}
     </div>
   )
 }
 
-// ========== ADDED HERE: New styles for loading and error states ==========
 const styles = {
   screen: {
     minHeight: '100vh',
@@ -435,10 +460,15 @@ const styles = {
     color: '#4a3f35',
     fontStyle: 'italic',
   },
+  windowBullet: {
+    color: '#8b5e3c',
+    fontWeight: 700,
+    fontSize: 18,
+    flexShrink: 0,
+  },
   windowText: {
     lineHeight: 1.4,
   },
-  // ========== ADDED HERE: Window hint style ==========
   windowHint: {
     fontSize: 13,
     color: '#9b8c7e',
@@ -475,7 +505,6 @@ const styles = {
     textDecoration: 'underline',
     textDecorationColor: '#c8bfb0',
   },
-  // ========== ADDED HERE: Loading styles ==========
   loadingContainer: {
     flex: 1,
     display: 'flex',
@@ -498,7 +527,6 @@ const styles = {
     fontSize: 20,
     fontStyle: 'italic',
   },
-  // ========== ADDED HERE: Error styles ==========
   errorContainer: {
     flex: 1,
     display: 'flex',
@@ -535,4 +563,16 @@ const styles = {
     borderRadius: 2,
     cursor: 'pointer',
   },
+}
+
+// ========== ADDED HERE: Keyframe animation for spinner ==========
+if (typeof document !== 'undefined') {
+  const style = document.createElement('style')
+  style.textContent = `
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  `
+  document.head.appendChild(style)
 }
