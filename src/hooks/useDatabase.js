@@ -227,6 +227,19 @@ export function useDatabase() {
     return data[0]
   }
 
+  const getUserGoal = async (userId) => {
+    const { data, error } = await supabase
+      .from('goals')
+      .select('goal_type, collateral_type')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
+
+    if (error && error.code !== 'PGRST116') throw error
+    return data
+  }
+
   //run this on login or periodically
   const checkMissedCheckIns = async (partnershipId, userId) => {
     const yesterday = new Date()
@@ -261,6 +274,7 @@ export function useDatabase() {
     setCheckInWindow,
     reportMissedCheckIn,
     markCollateralPaid,
-    checkMissedCheckIns
+    checkMissedCheckIns,
+    getUserGoal
   }
 }

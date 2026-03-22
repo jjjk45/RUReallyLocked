@@ -22,7 +22,7 @@ export function useUnreadCount(userId, conversationId) {
 
     fetchUnreadCount()
 
-    // Subscribe to new messages
+    // Subscribe to new messages and read-status changes
     const subscription = supabase
       .channel(`unread:${conversationId}`)
       .on(
@@ -37,6 +37,18 @@ export function useUnreadCount(userId, conversationId) {
           if (payload.new.sender_id !== userId) {
             setUnreadCount(prev => prev + 1)
           }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversation_id=eq.${conversationId}`
+        },
+        () => {
+          fetchUnreadCount()
         }
       )
       .subscribe()

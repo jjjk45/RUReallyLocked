@@ -5,25 +5,9 @@ import BadgeDisplay from '../components/BadgeDisplay'
 import { useAuth } from '../hooks/useAuth'
 import { useDatabase } from '../hooks/useDatabase'
 import ReportPopup from '../components/ReportPopup'
-// ========== ADDED HERE: Chat imports ==========
 import ChatToggle from '../components/ChatToggle'
-import { useUnreadCount } from '../hooks/useUnreadCount'
-
-const GOAL_LABELS = {
-  gym: 'Gym',
-  internships: 'Internships',
-  coding: 'Coding',
-  studying: 'Studying',
-  wakeup: 'Waking Up Early',
-}
-
-const COLLATERAL_LABELS = {
-  money: { emoji: '💵', label: '$20 to partner' },
-  meal: { emoji: '🍕', label: 'Owe them a meal' },
-  mile: { emoji: '🏃', label: 'Run a mile' },
-  bathroom: { emoji: '🧹', label: 'Clean their bathroom/kitchen' },
-  dishes: { emoji: '🍽️', label: 'Do their dishes' },
-}
+import { GOAL_LABELS } from '../types/goals'
+import { COLLATERAL_LABELS, COLLATERAL_EMOJIS } from '../types/collaterals'
 
 export default function Dashboard() {
   const { user } = useAuth()
@@ -32,7 +16,8 @@ export default function Dashboard() {
     recordCheckIn,
     getCurrentStreak,
     getCheckInHistory,
-    checkMissedCheckIns
+    checkMissedCheckIns,
+    getUserGoal
   } = useDatabase()
 
   const [partnership, setPartnership] = useState(null)
@@ -44,37 +29,11 @@ export default function Dashboard() {
   const [error, setError] = useState('')
   const [showReport, setShowReport] = useState(false)
   const [collateral, setCollateral] = useState(null)
-  // ========== ADDED HERE: Chat state ==========
-  const [conversationId, setConversationId] = useState(null)
-
-  const goal = localStorage.getItem('rul_goal') || 'gym'
-  const goalLabel = GOAL_LABELS[goal] || 'Gym'
+  const [goalLabel, setGoalLabel] = useState('')
 
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'long', month: 'long', day: 'numeric'
   })
-
-  // ========== ADDED HERE: Get conversation ID for unread count ==========
-  useEffect(() => {
-    async function getConversationId() {
-      if (!partnership) return
-      
-      const { data, error } = await supabase
-        .from('conversations')
-        .select('id')
-        .eq('partnership_id', partnership.id)
-        .maybeSingle()
-      
-      if (!error && data) {
-        setConversationId(data.id)
-      }
-    }
-    
-    getConversationId()
-  }, [partnership])
-
-  // ========== ADDED HERE: Unread message count ==========
-  const unreadCount = useUnreadCount(user?.id, conversationId)
 
   useEffect(() => {
     async function loadDashboardData() {
@@ -87,6 +46,7 @@ export default function Dashboard() {
 
         if (activePartnership) {
           setPartnership(activePartnership)
+          setGoalLabel(GOAL_LABELS[activePartnership.goal_type] || 'Gym')
 
           const partnerUser = activePartnership.user1_id === user.id
             ? activePartnership.user2
@@ -105,8 +65,12 @@ export default function Dashboard() {
 
           await checkMissedCheckIns(activePartnership.id, user.id)
 
-          const collateralType = localStorage.getItem('rul_collateral') || 'money'
-          setCollateral(COLLATERAL_LABELS[collateralType] || COLLATERAL_LABELS.money)
+          const goalData = await getUserGoal(user.id)
+          const collateralType = goalData?.collateral_type || 'money'
+          setCollateral({
+            emoji: COLLATERAL_EMOJIS[collateralType] || COLLATERAL_EMOJIS.money,
+            label: COLLATERAL_LABELS[collateralType] || COLLATERAL_LABELS.money,
+          })
         } else {
           setError('No active partnership found. Please find a partner first.')
         }
@@ -139,27 +103,6 @@ export default function Dashboard() {
       console.error('Error checking in:', error)
       setError(error.message || 'Failed to check in. Please try again.')
     }
-  }
-
-  // ========== COMMENTED OUT ORIGINAL handleCheckIn ==========
-  // function handleCheckIn() {
-  //   setCheckedIn(true)
-  //   setStreak(s => s + 1)
-  // }
-
-  const getPartnerDisplayName = () => {
-    if (!partner) return 'Finding partner...'
-    return partner.full_name || 'Accountability Partner'
-  }
-
-  const getPartnerYear = () => {
-    if (!partner) return ''
-    return partner.year || 'Student'
-  }
-
-  const getPartnerSchool = () => {
-    if (!partner) return ''
-    return partner.school || 'Rutgers University'
   }
 
   if (loading) {
@@ -213,9 +156,9 @@ export default function Dashboard() {
 
           <div style={styles.partnerBlock}>
             <div style={styles.partnerInfo}>
-              <div style={styles.partnerName}>{getPartnerDisplayName()}</div>
+              <div style={styles.partnerName}>{partner?.full_name || 'Accountability Partner'}</div>
               <div style={styles.partnerMeta}>
-                {getPartnerYear()} · {getPartnerSchool()}
+                {partner?.year || 'Unknown'} · {partner?.school || 'Unknown'}
               </div>
               <div style={styles.partnerStatus}>
                 {checkedIn
@@ -233,10 +176,8 @@ export default function Dashboard() {
 
         {/* Check-in Window */}
         <div style={styles.windowNote}>
-          <span style={styles.windowBullet}>!</span>
           <span style={styles.windowText}>
             check-in window: <strong>7:30 – 8:00 AM</strong>
-            <span style={styles.windowHint}> (set your daily reminder)</span>
           </span>
         </div>
 
@@ -305,13 +246,11 @@ export default function Dashboard() {
         }}
       />
 
-      {/* ========== ADDED HERE: Chat Toggle Button ========== */}
       {partnership && partner && (
         <ChatToggle
           partnership={partnership}
           currentUser={user}
           partner={partner}
-          unreadCount={unreadCount}
         />
       )}
     </div>
@@ -460,19 +399,8 @@ const styles = {
     color: '#4a3f35',
     fontStyle: 'italic',
   },
-  windowBullet: {
-    color: '#8b5e3c',
-    fontWeight: 700,
-    fontSize: 18,
-    flexShrink: 0,
-  },
   windowText: {
     lineHeight: 1.4,
-  },
-  windowHint: {
-    fontSize: 13,
-    color: '#9b8c7e',
-    marginLeft: 8,
   },
   checkInWrap: {
     display: 'flex',

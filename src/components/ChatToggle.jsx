@@ -6,23 +6,22 @@ import { useUnreadCount } from '../hooks/useUnreadCount'
 export default function ChatToggle({ partnership, currentUser, partner }) {
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [conversationId, setConversationId] = useState(null)
-  
-  // ========== ADDED HERE: Get conversation ID for unread count ==========
+
   useEffect(() => {
     async function getConversationId() {
       if (!partnership) return
-      
+
       const { data, error } = await supabase
         .from('conversations')
         .select('id')
         .eq('partnership_id', partnership.id)
         .maybeSingle()
-      
+
       if (!error && data) {
         setConversationId(data.id)
       }
     }
-    
+
     getConversationId()
   }, [partnership])
 
@@ -41,7 +40,7 @@ export default function ChatToggle({ partnership, currentUser, partner }) {
         {unreadCount > 0 && (
           <span style={styles.unreadBadge}>{unreadCount}</span>
         )}
-        {!isChatOpen && <span style={styles.chatBadge}>Chat</span>}
+        {!isChatOpen && unreadCount === 0 && <span style={styles.chatBadge}>Chat</span>}
       </button>
 
       {/* Chat Panel */}
@@ -73,7 +72,7 @@ const styles = {
   chatButton: {
     position: 'fixed',
     bottom: '24px',
-    right: '24px',
+    left: '24px',
     width: '56px',
     height: '56px',
     borderRadius: '50%',
@@ -88,7 +87,6 @@ const styles = {
     boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
     transition: 'transform 0.2s',
     zIndex: 1000,
-    position: 'relative', // ========== ADDED HERE: For absolute positioning of badge ==========
   },
   chatIcon: {
     fontSize: '24px',
@@ -121,7 +119,7 @@ const styles = {
   chatPanel: {
     position: 'fixed',
     bottom: '100px',
-    right: '24px',
+    left: '24px',
     width: '380px',
     height: '500px',
     background: '#fff',
