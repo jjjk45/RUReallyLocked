@@ -131,12 +131,17 @@ export default function Dashboard() {
 
   const getPartnerYear = () => {
     if (!partner) return ''
-    return partner.year || 'Student'
+    return partner.year || 'Unknown'
   }
 
   const getPartnerSchool = () => {
     if (!partner) return ''
-    return partner.school || 'Rutgers University'
+    return partner.school || 'Unknown'
+  }
+
+  const getPartnerMajor = () => {
+    if(!partner) return ''
+    return partner.major || 'Unknown'
   }
 
   // ========== ADDED HERE: Loading state ==========
@@ -194,7 +199,7 @@ export default function Dashboard() {
             <div style={styles.partnerInfo}>
               <div style={styles.partnerName}>{getPartnerDisplayName()}</div>
               <div style={styles.partnerMeta}>
-                {getPartnerYear()} · {getPartnerSchool()}
+                {getPartnerYear()} · {getPartnerMajor()} · {getPartnerSchool()}
               </div>
               <div style={styles.partnerStatus}>
                 {checkedIn
