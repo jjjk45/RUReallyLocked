@@ -1,3 +1,5 @@
+import { colors } from '../styles/colors'
+
 export default function ReportPopup({ show, onClose, onSubmit }) {
   if (!show) return null
   return (
@@ -33,8 +35,8 @@ const styles = {
   popup: {
     width: '100%',
     maxWidth: 440,
-    background: '#faf7f2',
-    border: '1px solid #e0d8cc',
+    background: colors.bg,
+    border: `1px solid ${colors.border}`,
     padding: '32px 36px',
     display: 'flex',
     flexDirection: 'column',
@@ -43,7 +45,7 @@ const styles = {
   },
   popupLabel: {
     fontSize: 11,
-    color: '#9b8c7e',
+    color: colors.textMuted,
     letterSpacing: '2.5px',
     fontFamily: '-apple-system, sans-serif',
     fontWeight: 600,
@@ -52,16 +54,16 @@ const styles = {
   popupTitle: {
     fontSize: 32,
     fontWeight: 700,
-    color: '#2d2416',
+    color: colors.text,
   },
   popupAccent: {
     width: 36,
     height: 3,
-    background: '#8b1a2e',
+    background: colors.primary,
   },
   popupText: {
     fontSize: 18,
-    color: '#6b5d4e',
+    color: colors.textBody,
     lineHeight: 1.6,
     fontStyle: 'italic',
   },
@@ -73,11 +75,11 @@ const styles = {
   popupCancel: {
     flex: 1,
     padding: '10px',
-    border: '1.5px solid #c8bfb0',
+    border: `1.5px solid ${colors.borderSubtle}`,
     background: 'transparent',
     fontSize: 19,
     fontWeight: 600,
-    color: '#6b5d4e',
+    color: colors.textBody,
     cursor: 'pointer',
     fontFamily: 'Caveat, cursive',
     borderRadius: 2,
@@ -85,11 +87,11 @@ const styles = {
   popupConfirm: {
     flex: 1,
     padding: '10px',
-    border: '2px solid #8b1a2e',
-    background: '#8b1a2e',
+    border: `2px solid ${colors.primary}`,
+    background: colors.primary,
     fontSize: 19,
     fontWeight: 700,
-    color: '#faf7f2',
+    color: colors.bg,
     cursor: 'pointer',
     fontFamily: 'Caveat, cursive',
     borderRadius: 2,

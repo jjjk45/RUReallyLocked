@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { colors } from '../styles/colors'
+import { shared } from '../styles/shared'
 
 export default function Login() {
   const navigate = useNavigate()
@@ -13,7 +15,7 @@ export default function Login() {
   async function handleLogin(e) {
     e.preventDefault()
     setLoading(true)
-    setError('')  //clear any previous errors
+    setError('')
 
     try {
       await signIn(email, password)
@@ -26,7 +28,7 @@ export default function Login() {
   }
 
   return (
-    <div style={styles.screen}>
+    <div style={shared.screen}>
       <div style={styles.content}>
         <div style={styles.coverSection}>
           <h1 style={styles.appName}>RUrllyLocked?</h1>
@@ -37,40 +39,40 @@ export default function Login() {
         </div>
 
         <form style={styles.form} onSubmit={handleLogin}>
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>email</label>
+          <div style={shared.inputGroup}>
+            <label style={shared.label}>email</label>
             <input
-              style={styles.input}
+              style={shared.input}
               type="email"
               placeholder="abc123@scarletmail.rutgers.edu"
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
             />
-            <div style={styles.inputLine} />
+            <div style={shared.inputLine} />
           </div>
 
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>password</label>
+          <div style={shared.inputGroup}>
+            <label style={shared.label}>password</label>
             <input
-              style={styles.input}
+              style={shared.input}
               type="password"
               placeholder="secret code :o"
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
             />
-            <div style={styles.inputLine} />
+            <div style={shared.inputLine} />
           </div>
 
           {error && (
-            <div style={styles.errorMessage}>
-              <span style={styles.errorIcon}>⚠️</span>
-              <span style={styles.errorText}>{error}</span>
+            <div style={shared.errorMessage}>
+              <span style={shared.errorIcon}>⚠️</span>
+              <span style={shared.errorText}>{error}</span>
             </div>
           )}
 
-          <button style={{ ...styles.btn, opacity: loading ? 0.6 : 1 }} type="submit" disabled={loading}>
+          <button style={{ ...shared.primaryBtn, opacity: loading ? 0.6 : 1 }} type="submit" disabled={loading}>
             {loading ? 'logging in...' : '→ log in'}
           </button>
         </form>
@@ -85,13 +87,6 @@ export default function Login() {
 }
 
 const styles = {
-  screen: {
-    minHeight: '100vh',
-    background: '#faf7f2',
-    display: 'flex',
-    flexDirection: 'column',
-    paddingLeft: 6,
-  },
   content: {
     flex: 1,
     padding: '56px 52px 40px',
@@ -103,14 +98,14 @@ const styles = {
     marginBottom: 44,
   },
   appName: {
-    color: '#2d2416',
+    color: colors.text,
     fontSize: 52,
     fontWeight: 700,
     lineHeight: 1.05,
     marginBottom: 14,
   },
   tagline: {
-    color: '#6b5d4e',
+    color: colors.textBody,
     fontSize: 20,
     fontStyle: 'italic',
     marginBottom: 20,
@@ -121,9 +116,9 @@ const styles = {
   stamp: {
     display: 'inline-block',
     fontSize: 13,
-    color: '#9b8c7e',
+    color: colors.textMuted,
     fontFamily: '-apple-system, sans-serif',
-    border: '1.5px solid #c8bfb0',
+    border: `1.5px solid ${colors.borderSubtle}`,
     padding: '3px 12px',
     borderRadius: 2,
     letterSpacing: '1px',
@@ -135,73 +130,13 @@ const styles = {
     marginBottom: 28,
     maxWidth: 420,
   },
-  inputGroup: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 4,
-  },
-  label: {
-    color: '#8b1a2e',
-    fontSize: 16,
-    fontStyle: 'italic',
-    marginBottom: 2,
-  },
-  input: {
-    width: '100%',
-    padding: '6px 0',
-    border: 'none',
-    background: 'transparent',
-    color: '#2d2416',
-    fontSize: 24,
-  },
-  inputLine: {
-    width: '100%',
-    height: 1.5,
-    background: '#c8bfb0',
-  },
-  btn: {
-    alignSelf: 'flex-start',
-    marginTop: 8,
-    padding: '10px 32px',
-    border: '2px solid #2d2416',
-    background: '#2d2416',
-    color: '#faf7f2',
-    fontSize: 22,
-    fontWeight: 700,
-    borderRadius: 2,
-    transition: 'opacity 0.2s',
-    cursor: 'pointer',
-  },
-
-  errorMessage: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '12px 16px',
-    background: '#fff',
-    borderLeft: '4px solid #8b1a2e',
-    marginTop: '-8px',
-    marginBottom: '-8px',
-  },
-  errorIcon: {
-    fontSize: '18px',
-  },
-  errorText: {
-    color: '#8b1a2e',
-    fontSize: '18px',
-    flex: 1,
-    fontFamily: 'Patrick Hand',
-  },
   switchText: {
-    color: '#6b5d4e',
+    color: colors.textBody,
     fontSize: 18,
   },
   link: {
-    color: '#8b1a2e',
+    color: colors.primary,
     fontWeight: 700,
     textDecoration: 'none',
-    ':hover': {
-      textDecoration: 'underline',
-    },
   },
 }

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { colors } from '../styles/colors'
 
 export default function StreakCalendar({ checkIns = [] }) {
   const [hoveredDay, setHoveredDay] = useState(null)
@@ -33,13 +34,6 @@ export default function StreakCalendar({ checkIns = [] }) {
 
   const toISO = (d) => d.toISOString().split('T')[0]
   const checkedSet = new Set(checkIns)
-  if (checkIns.length === 0) {
-    for (let i = 0; i < 5; i++) {
-      const d = new Date(today)
-      d.setDate(today.getDate() - i)
-      checkedSet.add(toISO(d))
-    }
-  }
 
   const DAY_LABELS = ['Su', 'M', 'Tu', 'W', 'Th', 'F', 'Sa']
 
@@ -63,10 +57,10 @@ export default function StreakCalendar({ checkIns = [] }) {
               return <div key={di} style={styles.emptyCell} />
             }
 
-            const bg = checked ? '#8b1a2e' : 'transparent'
-            const borderColor = checked || isToday ? '#8b1a2e' : isFuture ? '#e8e0d8' : '#d8d0c4'
+            const bg = checked ? colors.primary : 'transparent'
+            const borderColor = checked || isToday ? colors.primary : isFuture ? '#e8e0d8' : '#d8d0c4'
             const borderStyle = isFuture ? 'dashed' : 'solid'
-            const color = checked ? '#fff' : isToday ? '#8b1a2e' : isFuture ? '#c8bfb5' : '#9b8c7e'
+            const color = checked ? '#fff' : isToday ? colors.primary : isFuture ? '#c8bfb5' : colors.textMuted
 
             const isHovered = hoveredDay === iso
 
@@ -75,9 +69,9 @@ export default function StreakCalendar({ checkIns = [] }) {
                 key={di}
                 style={{
                   ...styles.cell,
-                  backgroundColor: isHovered ? '#faf7f2' : bg,
+                  backgroundColor: isHovered ? colors.bg : bg,
                   border: `2px ${borderStyle} ${borderColor}`,
-                  color: isHovered ? '#000' : color,
+                  color: isHovered ? colors.text : color,
                   transform: isHovered ? `scale(1.12) rotate(${Math.floor(Math.random() * 10) - 5}deg)` : 'scale(1) rotate(0deg)',
                   transition: 'background-color 0.2s, color 0.2s, transform 0.2s',
                   cursor: 'default',
@@ -97,7 +91,7 @@ export default function StreakCalendar({ checkIns = [] }) {
 
       <div style={styles.legend}>
         <span style={styles.legendItem}>
-          <span style={{ width: 12, height: 12, borderRadius: '20%', backgroundColor: '#8b1a2e', display: 'inline-block' }} /> checked in
+          <span style={{ width: 12, height: 12, borderRadius: '20%', backgroundColor: colors.primary, display: 'inline-block' }} /> checked in
         </span>
         <span style={styles.legendItem}>
           <span style={{ width: 12, height: 12, borderRadius: '20%', border: '2px solid #d8d0c4', display: 'inline-block' }} /> missed
@@ -127,8 +121,8 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     fontSize: 20,
-    color: '#9b8c7e',
-    fontStyle: '-apple-system, sans-serif'
+    color: colors.textMuted,
+    fontFamily: '-apple-system, sans-serif',
   },
   row: {
     display: 'flex',
@@ -159,7 +153,7 @@ const styles = {
   },
   legendItem: {
     fontSize: 14,
-    color: '#9b8c7e',
+    color: colors.textMuted,
     fontStyle: 'italic',
     display: 'flex',
     alignItems: 'center',

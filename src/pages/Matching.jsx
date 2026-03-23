@@ -4,28 +4,32 @@ import { useAuth } from '../hooks/useAuth'
 import { useDatabase } from '../hooks/useDatabase'
 import { GOAL_LABELS } from '../types/goals'
 import { COLLATERAL_LABELS } from '../types/collaterals'
+import ReportPopup from '../components/ReportPopup'
+import { colors } from '../styles/colors'
+import { shared } from '../styles/shared'
 
 export default function Matching() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { findPotentialPartners, createPartnership } = useDatabase()
-  const [phase, setPhase] = useState('matched') //loading is default
+  const [phase, setPhase] = useState('loading')
   const [cardIndex, setCardIndex] = useState(0)
   const [slideDir, setSlideDir] = useState(null)
   const [isAnimating, setIsAnimating] = useState(false)
   const [profiles, setProfiles] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [showReport, setShowReport] = useState(false)
 
-  const goal = localStorage.getItem('rul_goal') || 'gym' //CHANGE THIS IMMEDIATELY
+  const goal = localStorage.getItem('rul_goal') || 'gym'
   const goalInfo = GOAL_LABELS[goal] || GOAL_LABELS.gym
 
   useEffect(() => {
     async function loadPartners() {
       if (!user) return
       try {
-        setLoading(true) //redundant?
-        const partners = await findPotentialPartners(user.id, goal) //an array of partners
+        setLoading(true)
+        const partners = await findPotentialPartners(user.id, goal)
         const formattedProfiles = partners.map(p => ({
           name: p.profiles?.full_name || 'Anonymous',
           year: p.profiles?.year || 'Unknown',
@@ -47,8 +51,7 @@ export default function Matching() {
       }
     }
 
-    const timer = setTimeout(loadPartners, 800)
-    return () => clearTimeout(timer)
+    loadPartners()
   }, [user, goal])
 
   async function handleAccept() {
@@ -105,12 +108,12 @@ export default function Matching() {
 
   if (phase === 'noMatches') {
     return (
-      <div style={styles.matchedScreen}>
-        <div style={styles.matchedInner}>
-          <div style={styles.matchedLabel}>new entry</div>
-          <h1 style={styles.matchedTitle}>No Matches Yet</h1>
-          <div style={styles.matchedAccent} />
-          <p style={styles.matchedSub}>
+      <div style={styles.centeredScreen}>
+        <div style={styles.centeredInner}>
+          <div style={styles.screenLabel}>new entry</div>
+          <h1 style={styles.screenTitle}>No Matches Yet</h1>
+          <div style={shared.accentLine} />
+          <p style={styles.screenSub}>
             There's currently no one else working on <strong>{goalInfo}</strong>. Check back later!
           </p>
           <button style={styles.startBtn} onClick={() => navigate('/dashboard')}>
@@ -123,12 +126,12 @@ export default function Matching() {
 
   if (phase === 'error') {
     return (
-      <div style={styles.matchedScreen}>
-        <div style={styles.matchedInner}>
-          <div style={styles.matchedLabel}>error</div>
-          <h1 style={styles.matchedTitle}>Something Went Wrong</h1>
-          <div style={styles.matchedAccent} />
-          <p style={styles.matchedSub}>{error}</p>
+      <div style={styles.centeredScreen}>
+        <div style={styles.centeredInner}>
+          <div style={styles.screenLabel}>error</div>
+          <h1 style={styles.screenTitle}>Something Went Wrong</h1>
+          <div style={shared.accentLine} />
+          <p style={styles.screenSub}>{error}</p>
           <button style={styles.startBtn} onClick={() => window.location.reload()}>
             → try again
           </button>
@@ -137,13 +140,13 @@ export default function Matching() {
     )
   }
 
-  if (phase === 'matched') {  //make this not a heart, make it arm wrestling because that is cool
+  if (phase === 'matched') {
     return (
-      <div style={styles.matchedScreen}>
-        <div style={styles.matchedInner}>
-          <h1 style={styles.matchedTitle}>It's a Match!</h1>
-          <div style={styles.matchedAccent} />
-          <p style={styles.matchedSub}>
+      <div style={styles.centeredScreen}>
+        <div style={styles.centeredInner}>
+          <h1 style={styles.screenTitle}>It's a Match!</h1>
+          <div style={shared.accentLine} />
+          <p style={styles.screenSub}>
             you and <strong>{profile?.name}</strong> are now accountability partners!
           </p>
 
@@ -168,7 +171,7 @@ export default function Matching() {
           <div style={styles.matchNote}>
             <span style={styles.noteExclaim}>!</span>
             <span style={styles.noteText}>
-              you have <strong>1 hour</strong> to agree on a daily check-in window, or you'll be unmatched.
+              coordinate a check-in time with your partner once you're connected.
             </span>
           </div>
 
@@ -182,12 +185,12 @@ export default function Matching() {
 
   if (!profile) {
     return (
-      <div style={styles.matchedScreen}>
-        <div style={styles.matchedInner}>
-          <div style={styles.matchedLabel}>new entry</div>
-          <h1 style={styles.matchedTitle}>No More Profiles</h1>
-          <div style={styles.matchedAccent} />
-          <p style={styles.matchedSub}>
+      <div style={styles.centeredScreen}>
+        <div style={styles.centeredInner}>
+          <div style={styles.screenLabel}>new entry</div>
+          <h1 style={styles.screenTitle}>No More Profiles</h1>
+          <div style={shared.accentLine} />
+          <p style={styles.screenSub}>
             You've viewed all available partners. Check back later!
           </p>
           <button style={styles.startBtn} onClick={() => navigate('/dashboard')}>
@@ -199,7 +202,7 @@ export default function Matching() {
   }
 
   return (
-    <div style={styles.screen}>
+    <div style={shared.screen}>
       <div style={styles.topBar}>
         <h2 style={styles.topTitle}>Find Your Partner</h2>
         <span style={styles.goalTag}>goal: {goalInfo}</span>
@@ -265,54 +268,44 @@ export default function Matching() {
       </div>
 
       <p style={styles.disclaimer}>
-        you can <span style={styles.reportLink}>report a partner</span> at any time.
+        you can{' '}
+        <span style={styles.reportLink}>
+          {/* onClick={() => setShowReport(true)} -- included this before but I dont't think it fits here */}
+          report a partner
+        </span>
+        {' '}at any time.
       </p>
-    </div>
-  )
-  }
 
-  function Dot({ delay }) {
-    return (
-      <div
-        style={{
-          width: 8,
-          height: 8,
-          borderRadius: '50%',
-          background: '#8b1a2e',
-          animation: `pulse 1s ${delay}s infinite`,
+      <ReportPopup
+        show={showReport}
+        onClose={() => setShowReport(false)}
+        onSubmit={() => {
+          setShowReport(false)
+          alert('Report submitted. Our team will review it within 24 hours.')
         }}
       />
-    )
-  }
+    </div>
+  )
+}
 
-  const keyframes = `
-    @keyframes pulse {
-      0%, 100% { opacity: 0.3; transform: scale(1); }
-      50% { opacity: 1; transform: scale(1.2); }
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    @keyframes slide-left {
-      0% { transform: translateX(0); opacity: 1; }
-      100% { transform: translateX(-40px); opacity: 0; }
-    }
-    @keyframes slide-right {
-      0% { transform: translateX(0); opacity: 1; }
-      100% { transform: translateX(40px); opacity: 0; }
-    }`
+function Dot({ delay }) {
+  return (
+    <div
+      style={{
+        width: 8,
+        height: 8,
+        borderRadius: '50%',
+        background: colors.primary,
+        animation: `pulse 1s ${delay}s infinite`,
+      }}
+    />
+  )
+}
 
-  if (typeof document !== 'undefined') {
-    const style = document.createElement('style')
-    style.textContent = keyframes
-    document.head.appendChild(style)
-  }
-
-  const styles = {
+const styles = {
   loadingScreen: {
     minHeight: '100vh',
-    background: '#faf7f2',
+    background: colors.bg,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -328,18 +321,18 @@ export default function Matching() {
   spinner: {
     width: 48,
     height: 48,
-    border: '3px solid #e0d8cc',
-    borderTop: '3px solid #8b1a2e',
+    border: `3px solid ${colors.border}`,
+    borderTop: `3px solid ${colors.primary}`,
     borderRadius: '50%',
     animation: 'spin 0.9s linear infinite',
   },
   loadingLabel: {
-    color: '#2d2416',
+    color: colors.text,
     fontSize: 26,
     fontStyle: 'italic',
   },
   loadingGoal: {
-    color: '#6b5d4e',
+    color: colors.textBody,
     fontSize: 20,
   },
   dots: {
@@ -347,43 +340,38 @@ export default function Matching() {
     gap: 8,
     marginTop: 4,
   },
-  matchedScreen: {
+  centeredScreen: {
     minHeight: '100vh',
-    background: '#faf7f2',
+    background: colors.bg,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     padding: '40px 52px',
     paddingLeft: 58,
   },
-  matchedInner: {
+  centeredInner: {
     width: '100%',
     maxWidth: 500,
     display: 'flex',
     flexDirection: 'column',
     gap: 18,
   },
-  matchedLabel: {
+  screenLabel: {
     fontSize: 11,
-    color: '#9b8c7e',
+    color: colors.textMuted,
     letterSpacing: '2.5px',
     fontFamily: '-apple-system, sans-serif',
     fontWeight: 600,
     textTransform: 'uppercase',
   },
-  matchedTitle: {
-    color: '#2d2416',
+  screenTitle: {
+    color: colors.text,
     fontSize: 48,
     fontWeight: 700,
     lineHeight: 1.05,
   },
-  matchedAccent: {
-    width: 48,
-    height: 3,
-    background: '#8b1a2e',
-  },
-  matchedSub: {
-    color: '#6b5d4e',
+  screenSub: {
+    color: colors.textBody,
     fontSize: 20,
     fontStyle: 'italic',
     lineHeight: 1.5,
@@ -397,8 +385,8 @@ export default function Matching() {
   },
   avatarBox: {
     padding: '8px 20px',
-    border: '2px solid #2d2416',
-    color: '#2d2416',
+    border: `2px solid ${colors.text}`,
+    color: colors.text,
     fontSize: 20,
     fontWeight: 700,
     borderRadius: 2,
@@ -409,8 +397,8 @@ export default function Matching() {
     userSelect: 'none',
   },
   matchDetails: {
-    borderTop: '1px solid #e0d8cc',
-    borderBottom: '1px solid #e0d8cc',
+    borderTop: `1px solid ${colors.border}`,
+    borderBottom: `1px solid ${colors.border}`,
     padding: '16px 0',
     display: 'flex',
     flexDirection: 'column',
@@ -423,15 +411,15 @@ export default function Matching() {
   },
   matchRowDivider: {
     height: 1,
-    background: '#f0ece4',
+    background: colors.borderLight,
   },
   matchKey: {
-    color: '#8b1a2e',
+    color: colors.primary,
     fontSize: 18,
     fontStyle: 'italic',
   },
   matchVal: {
-    color: '#2d2416',
+    color: colors.text,
     fontSize: 18,
     fontWeight: 600,
   },
@@ -440,17 +428,17 @@ export default function Matching() {
     alignItems: 'flex-start',
     gap: 12,
     padding: '14px 18px',
-    background: '#f5ede8',
-    borderLeft: '3px solid #8b1a2e',
+    background: colors.warningBg,
+    borderLeft: `3px solid ${colors.primary}`,
   },
   noteExclaim: {
-    color: '#8b1a2e',
+    color: colors.primary,
     fontSize: 20,
     fontWeight: 700,
     flexShrink: 0,
   },
   noteText: {
-    color: '#4a3f35',
+    color: colors.textBodyDark,
     fontSize: 17,
     fontStyle: 'italic',
     lineHeight: 1.5,
@@ -458,44 +446,37 @@ export default function Matching() {
   startBtn: {
     alignSelf: 'flex-start',
     padding: '10px 32px',
-    border: '2px solid #2d2416',
-    background: '#2d2416',
-    color: '#faf7f2',
+    border: `2px solid ${colors.text}`,
+    background: colors.text,
+    color: colors.bg,
     fontSize: 22,
     fontWeight: 700,
     borderRadius: 2,
     cursor: 'pointer',
   },
-  screen: {
-    minHeight: '100vh',
-    background: '#faf7f2',
-    display: 'flex',
-    flexDirection: 'column',
-    paddingLeft: 6,
-  },
   topBar: {
     padding: '20px 52px 16px',
-    borderBottom: '1px solid #e0d8cc',
+    borderBottom: `1px solid ${colors.border}`,
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   topTitle: {
-    color: '#2d2416',
+    color: colors.text,
     fontSize: 28,
     fontWeight: 700,
   },
   goalTag: {
-    color: '#8b1a2e',
+    color: colors.primary,
     fontSize: 18,
     fontStyle: 'italic',
   },
   hint: {
     padding: '12px 52px',
-    color: '#9b8c7e',
+    color: colors.textMuted,
     fontSize: 17,
     fontStyle: 'italic',
-    borderBottom: '1px solid #f0ece4',
+    borderBottom: `1px solid ${colors.borderLight}`,
   },
   cardArea: {
     flex: 1,
@@ -511,13 +492,13 @@ export default function Matching() {
     flexShrink: 0,
     width: 48,
     height: 48,
-    border: '2px solid #c8bfb0',
-    background: '#faf7f2',
+    border: `2px solid ${colors.borderSubtle}`,
+    background: colors.bg,
     borderRadius: 2,
     fontSize: 32,
     lineHeight: 1,
     cursor: 'pointer',
-    color: '#2d2416',
+    color: colors.text,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -526,8 +507,8 @@ export default function Matching() {
   profileCard: {
     width: '100%',
     maxWidth: 480,
-    background: '#fdf9f3',
-    border: '1px solid #e0d8cc',
+    background: colors.cardBg,
+    border: `1px solid ${colors.border}`,
     padding: '28px 32px',
     boxShadow: '2px 3px 12px rgba(0,0,0,0.08)',
     willChange: 'transform',
@@ -539,23 +520,23 @@ export default function Matching() {
     marginBottom: 16,
   },
   cardName: {
-    color: '#2d2416',
+    color: colors.text,
     fontSize: 30,
     fontWeight: 700,
   },
   cardMeta: {
-    color: '#9b8c7e',
+    color: colors.textMuted,
     fontSize: 17,
     fontStyle: 'italic',
     marginTop: 2,
   },
   cardDivider: {
     height: 1,
-    background: '#e0d8cc',
+    background: colors.border,
     margin: '14px 0',
   },
   cardBio: {
-    color: '#4a3f35',
+    color: colors.textBodyDark,
     fontSize: 19,
     fontStyle: 'italic',
     lineHeight: 1.6,
@@ -572,11 +553,11 @@ export default function Matching() {
     fontSize: 18,
   },
   detailKey: {
-    color: '#9b8c7e',
+    color: colors.textMuted,
     fontStyle: 'italic',
   },
   detailVal: {
-    color: '#2d2416',
+    color: colors.text,
     fontWeight: 600,
   },
   actionRow: {
@@ -587,7 +568,7 @@ export default function Matching() {
     padding: '12px 52px 8px',
   },
   counterText: {
-    color: '#9b8c7e',
+    color: colors.textMuted,
     fontSize: 18,
     fontStyle: 'italic',
     minWidth: 48,
@@ -600,9 +581,9 @@ export default function Matching() {
     gap: 4,
     width: 80,
     height: 80,
-    border: '2px solid #2d2416',
-    background: '#2d2416',
-    color: '#faf7f2',
+    border: `2px solid ${colors.text}`,
+    background: colors.text,
+    color: colors.bg,
     borderRadius: 2,
     cursor: 'pointer',
   },
@@ -618,13 +599,16 @@ export default function Matching() {
   },
   disclaimer: {
     fontSize: 15,
-    color: '#9b8c7e',
+    color: colors.textMuted,
     padding: '8px 52px 20px',
     fontStyle: 'italic',
     textAlign: 'center',
   },
   reportLink: {
-    color: '#8b1a2e',
+    color: colors.primary,
     fontWeight: 600,
+    cursor: 'pointer',
+    textDecoration: 'underline',
+    textDecorationColor: colors.borderSubtle,
   },
 }

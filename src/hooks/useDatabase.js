@@ -18,14 +18,15 @@ export function useDatabase() {
     return data[0]
   }
 
+  // Upsert so it's safe to call multiple times for the same user
   const saveGoal = async (userId, goalType, collateralType) => {
     const { data, error } = await supabase
       .from('goals')
-      .insert([{
+      .upsert([{
         user_id: userId,
         goal_type: goalType,
         collateral_type: collateralType
-      }])
+      }], { onConflict: 'user_id' })
       .select()
 
     if (error) throw error
@@ -33,19 +34,18 @@ export function useDatabase() {
   }
 
   const findPotentialPartners = async (userId, goalType) => {
-    // Step 1: get IDs of users already partnered with current user
-    const { data: existingPartnerships } = await supabase
+    // Exclude current user and anyone who already has an active partnership
+    const { data: allActivePartnerships } = await supabase
       .from('partnerships')
       .select('user1_id, user2_id')
-      .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
+      .eq('status', 'active')
 
     const excludedIds = new Set([userId])
-    existingPartnerships?.forEach(p => {
+    allActivePartnerships?.forEach(p => {
       excludedIds.add(p.user1_id)
       excludedIds.add(p.user2_id)
     })
 
-    // Step 2: query goals excluding those users
     const { data, error } = await supabase
       .from('goals')
       .select(`
@@ -84,7 +84,6 @@ export function useDatabase() {
   const recordCheckIn = async (partnershipId, userId) => {
     const today = new Date().toISOString().split('T')[0]
 
-    // Check if already checked in today
     const { data: existing } = await supabase
       .from('check_ins')
       .select()
@@ -127,7 +126,7 @@ export function useDatabase() {
       .eq('partnership_id', partnershipId)
       .eq('user_id', userId)
       .order('date', { ascending: false })
-      .limit(60)  // Last 60 days
+      .limit(60)
 
     if (error) throw error
     return data || []
@@ -142,7 +141,6 @@ export function useDatabase() {
       .order('date', { ascending: false })
 
     if (error) throw error
-
     if (!data || data.length === 0) return 0
 
     let streak = 0
@@ -153,7 +151,6 @@ export function useDatabase() {
       const checkDate = new Date(data[i].date)
       const expectedDate = new Date(currentDate)
 
-      // Check if dates match (allowing for timezone differences)
       if (checkDate.toDateString() === expectedDate.toDateString()) {
         streak++
         currentDate.setDate(currentDate.getDate() - 1)
@@ -177,7 +174,7 @@ export function useDatabase() {
       .eq('status', 'active')
       .single()
 
-    if (error && error.code !== 'PGRST116') throw error  // PGRST116 = no rows returned
+    if (error && error.code !== 'PGRST116') throw error
     return data
   }
 
@@ -237,8 +234,7 @@ export function useDatabase() {
     return data
   }
 
-  //need to think up a smart way to run this once every day
-  const checkMissedCheckIns = async (partnershipId, userId, daysAgo = 1) => { //daysAgo for catching up, risky though
+  const checkMissedCheckIns = async (partnershipId, userId, daysAgo = 1) => {
     const date = new Date()
     date.setDate(date.getDate() - daysAgo)
     const dateStr = date.toISOString().split('T')[0]
@@ -251,14 +247,26 @@ export function useDatabase() {
       .eq('date', dateStr)
 
     if (!checkIn || checkIn.length === 0) {
-      await reportMissedCheckIn(partnershipId, userId) //creates a new db row
-      return true
+      // Check if a collateral_owed row already exists for this miss before inserting
+      const { data: existing } = await supabase
+        .from('collateral_owed')
+        .select('id')
+        .eq('partnership_id', partnershipId)
+        .eq('user_id', userId)
+        .eq('reason', 'missed_checkin')
+        .eq('status', 'pending')
+        .gte('created_at', `${dateStr}T00:00:00`)
+        .lte('created_at', `${dateStr}T23:59:59`)
+
+      if (!existing || existing.length === 0) {
+        await reportMissedCheckIn(partnershipId, userId)
+        return true
+      }
     }
 
     return false
   }
 
-  //run AFTER checkMissingCheckIns
   const getPendingCollateral = async (partnershipId, userId) => {
     const { data, error } = await supabase
       .from('collateral_owed')

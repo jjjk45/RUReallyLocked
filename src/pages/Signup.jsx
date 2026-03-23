@@ -1,7 +1,9 @@
-import { useState } from "react"
+import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useDatabase } from '../hooks/useDatabase'
+import { colors } from '../styles/colors'
+import { shared } from '../styles/shared'
 
 export default function Signup() {
   const navigate = useNavigate()
@@ -16,7 +18,7 @@ export default function Signup() {
     bio: ''
   })
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')  // ← NEW: Added error state
+  const [error, setError] = useState('')
 
   function handleChange(e) {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }))
@@ -25,57 +27,52 @@ export default function Signup() {
   async function handleSubmit(e) {
     e.preventDefault()
     setLoading(true)
-    setError('')  // ← NEW: Clear previous errors
+    setError('')
 
     try {
-      // Create auth user
       const { user } = await signUp(form.email, form.password, {
         full_name: form.full_name,
-        school: form.school,    // ← NEW: Pass school to auth metadata
-        year: form.year,        // ← NEW: Pass year to auth metadata
-        bio: form.bio           // ← NEW: Pass bio to auth metadata
+        school: form.school,
+        year: form.year,
+        bio: form.bio
       })
 
       if (!user) throw new Error('Check your email to confirm your account.')
 
-      // Create profile in profiles table
       await createProfile(user.id, {
         full_name: form.full_name,
         email: form.email,
-        school: form.school,    // ← NEW: Save school to database
-        year: form.year,        // ← NEW: Save year to database
-        bio: form.bio           // ← NEW: Save bio to database
+        school: form.school,
+        year: form.year,
+        bio: form.bio
       })
 
-      // Navigate to goal selection
       navigate('/goal')
     } catch (error) {
-      setError(error.message)   // ← NEW: Display error to user
+      setError(error.message)
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div style={styles.screen}>
+    <div style={shared.screen}>
       <div style={styles.content}>
         <div style={styles.header}>
           <h1 style={styles.title}>Sign Up</h1>
-          <div style={styles.accentLine} />
+          <div style={shared.accentLine} />
         </div>
 
         <form style={styles.form} onSubmit={handleSubmit}>
-
-          {/* ========== EXISTING FIELDS (unchanged) ========== */}
           {[
             { name: 'full_name', label: 'full name', type: 'text', placeholder: 'firstname lastname' },
-            { name: 'email', label: 'email', type: 'email', placeholder: 'abc123@scarletmail.rutgers.edu' },
-            { name: 'password', label: 'password', type: 'password', placeholder: 'at least 8 characters' },
+            { name: 'email',     label: 'email',     type: 'email',    placeholder: 'abc123@scarletmail.rutgers.edu' },
+            { name: 'password',  label: 'password',  type: 'password', placeholder: 'at least 8 characters' },
           ].map(field => (
-            <div key={field.name} style={styles.inputGroup}>
-              <label style={styles.label}>{field.label}</label>
+            <div key={field.name} style={shared.inputGroup}>
+              <label style={shared.label}>{field.label}</label>
               <input
-                style={styles.input}
+                style={shared.input}
                 type={field.type}
                 name={field.name}
                 placeholder={field.placeholder}
@@ -83,17 +80,14 @@ export default function Signup() {
                 onChange={handleChange}
                 required
               />
-              <div style={styles.inputLine} />
+              <div style={shared.inputLine} />
             </div>
           ))}
 
-          {/* ========== NEW FIELDS - ADD THESE THREE INPUT GROUPS ========== */}
-
-          {/* School dropdown */}
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>school</label>
+          <div style={shared.inputGroup}>
+            <label style={shared.label}>school</label>
             <select
-              style={styles.input}
+              style={shared.input}
               name="school"
               value={form.school}
               onChange={handleChange}
@@ -113,12 +107,11 @@ export default function Signup() {
               <option>Ernest Mario School of Pharmacy</option>
               <option>Mason Gross School of the Arts</option>
             </select>
-            <div style={styles.inputLine} />
+            <div style={shared.inputLine} />
           </div>
 
-          {/* Year radio buttons */}
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>year</label>
+          <div style={shared.inputGroup}>
+            <label style={shared.label}>year</label>
             <div style={styles.radioGroup}>
               {['Freshman', 'Sophomore', 'Junior', 'Senior'].map(yr => (
                 <label key={yr} style={styles.radioLabel}>
@@ -135,12 +128,11 @@ export default function Signup() {
                 </label>
               ))}
             </div>
-            <div style={styles.inputLine} />
+            <div style={shared.inputLine} />
           </div>
 
-          {/* CHANGE MADE HERE: Bio field (textarea) */}
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>bio (200 chars max)</label>
+          <div style={shared.inputGroup}>
+            <label style={shared.label}>bio (200 chars max)</label>
             <textarea
               style={styles.textarea}
               name="bio"
@@ -151,21 +143,18 @@ export default function Signup() {
               rows={3}
               required
             />
-            <div style={styles.inputLine} />
-            <div style={styles.charCount}>
-              {form.bio.length}/200 characters
-            </div>
+            <div style={shared.inputLine} />
+            <div style={styles.charCount}>{form.bio.length}/200 characters</div>
           </div>
 
-          {/* CHANGE MADE HERE: Error message display */}
           {error && (
-            <div style={styles.errorMessage}>
-              <span style={styles.errorIcon}>⚠️</span>
-              <span style={styles.errorText}>{error}</span>
+            <div style={shared.errorMessage}>
+              <span style={shared.errorIcon}>⚠️</span>
+              <span style={shared.errorText}>{error}</span>
             </div>
           )}
 
-          <button style={{ ...styles.btn, opacity: loading ? 0.6 : 1 }} type="submit" disabled={loading}>
+          <button style={{ ...shared.primaryBtn, opacity: loading ? 0.6 : 1 }} type="submit" disabled={loading}>
             {loading ? 'setting up...' : '→ create account'}
           </button>
         </form>
@@ -179,15 +168,7 @@ export default function Signup() {
   )
 }
 
-// CHANGE MADE HERE: Added new styles for textarea, charCount, and error message
 const styles = {
-  screen: {
-    minHeight: '100vh',
-    background: '#faf7f2',
-    display: 'flex',
-    flexDirection: 'column',
-    paddingLeft: 6,
-  },
   content: {
     flex: 1,
     padding: '44px 52px 40px',
@@ -196,17 +177,11 @@ const styles = {
     marginBottom: 40,
   },
   title: {
-    color: '#2d2416',
+    color: colors.text,
     fontSize: 44,
     fontWeight: 700,
     lineHeight: 1.1,
     marginBottom: 12,
-  },
-  accentLine: {
-    width: 48,
-    height: 3,
-    background: '#8b1a2e',
-    marginBottom: 10,
   },
   form: {
     display: 'flex',
@@ -215,43 +190,21 @@ const styles = {
     marginBottom: 28,
     maxWidth: 420,
   },
-  inputGroup: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 4,
-  },
-  label: {
-    color: '#8b1a2e',
-    fontSize: 16,
-    fontStyle: 'italic',
-    marginBottom: 2,
-  },
-  input: {
-    width: '100%',
-    padding: '6px 0',
-    border: 'none',
-    background: 'transparent',
-    color: '#2d2416',
-    fontSize: 24,
-    fontFamily: 'Patrick Hand',
-  },
-  // CHANGE MADE HERE: New textarea style
   textarea: {
     width: '100%',
     padding: '8px 0',
     border: 'none',
     background: 'transparent',
-    color: '#2d2416',
+    color: colors.text,
     fontSize: 18,
     fontFamily: 'Patrick Hand',
     resize: 'vertical',
     minHeight: '70px',
   },
-  // CHANGE MADE HERE: New character counter style
   charCount: {
     textAlign: 'right',
     fontSize: 11,
-    color: '#9b8c7e',
+    color: colors.textMuted,
     marginTop: 4,
   },
   radioGroup: {
@@ -267,64 +220,23 @@ const styles = {
     gap: 6,
     fontSize: 20,
     fontFamily: 'Patrick Hand',
-    color: '#2d2416',
+    color: colors.text,
     cursor: 'pointer',
   },
   radioInput: {
-    accentColor: '#8b1a2e',
+    accentColor: colors.primary,
     width: 16,
     height: 16,
     cursor: 'pointer',
   },
-  inputLine: {
-    width: '100%',
-    height: 1.5,
-    background: '#c8bfb0',
-  },
-  // CHANGE MADE HERE: New error message styles
-  errorMessage: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '12px 16px',
-    background: '#fff5f5',
-    borderLeft: '4px solid #8b1a2e',
-    marginTop: '-8px',
-    marginBottom: '-8px',
-  },
-  errorIcon: {
-    fontSize: '18px',
-  },
-  errorText: {
-    color: '#8b1a2e',
-    fontSize: '14px',
-    flex: 1,
-    fontFamily: 'Patrick Hand',
-  },
-  btn: {
-    alignSelf: 'flex-start',
-    marginTop: 8,
-    padding: '10px 32px',
-    border: '2px solid #2d2416',
-    background: '#2d2416',
-    color: '#faf7f2',
-    fontSize: 22,
-    fontWeight: 700,
-    borderRadius: 2,
-    transition: 'opacity 0.2s',
-    cursor: 'pointer',
-  },
   switchText: {
-    color: '#6b5d4e',
+    color: colors.textBody,
     fontSize: 18,
     marginTop: 8,
   },
   link: {
-    color: '#8b1a2e',
+    color: colors.primary,
     fontWeight: 700,
     textDecoration: 'none',
-    ':hover': {
-      textDecoration: 'underline',
-    },
   },
 }

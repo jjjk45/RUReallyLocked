@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
 import ChatWindow from './ChatWindow'
 import { useUnreadCount } from '../hooks/useUnreadCount'
+import { colors } from '../styles/colors'
 
 export default function ChatToggle({ partnership, currentUser, partner }) {
   const [isChatOpen, setIsChatOpen] = useState(false)
@@ -25,25 +26,21 @@ export default function ChatToggle({ partnership, currentUser, partner }) {
     getConversationId()
   }, [partnership])
 
-  // ========== ADDED HERE: Get unread message count ==========
   const unreadCount = useUnreadCount(currentUser?.id, conversationId)
 
   return (
     <>
-      {/* Chat Button */}
       <button
         onClick={() => setIsChatOpen(!isChatOpen)}
         style={styles.chatButton}
       >
         <span style={styles.chatIcon}>💬</span>
-        {/* ========== ADDED HERE: Unread count badge ========== */}
         {unreadCount > 0 && (
           <span style={styles.unreadBadge}>{unreadCount}</span>
         )}
         {!isChatOpen && unreadCount === 0 && <span style={styles.chatBadge}>Chat</span>}
       </button>
 
-      {/* Chat Panel */}
       {isChatOpen && (
         <div style={styles.chatPanel}>
           <div style={styles.chatHeader}>
@@ -76,7 +73,7 @@ const styles = {
     width: '56px',
     height: '56px',
     borderRadius: '50%',
-    background: '#8b1a2e',
+    background: colors.primary,
     color: '#fff',
     border: 'none',
     cursor: 'pointer',
@@ -112,7 +109,7 @@ const styles = {
     borderRadius: '12px',
     minWidth: '18px',
     textAlign: 'center',
-    fontWeight: 'bold',
+    fontWeight: 700,
     zIndex: 1001,
   },
   chatPanel: {
@@ -135,13 +132,13 @@ const styles = {
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: '16px 20px',
-    borderBottom: '1px solid #e0d8cc',
-    background: '#faf7f2',
+    borderBottom: `1px solid ${colors.border}`,
+    background: colors.bg,
   },
   chatTitle: {
     fontSize: '18px',
     fontWeight: 700,
-    color: '#2d2416',
+    color: colors.text,
     margin: 0,
   },
   closeButton: {
@@ -149,27 +146,10 @@ const styles = {
     border: 'none',
     fontSize: '20px',
     cursor: 'pointer',
-    color: '#9b8c7e',
+    color: colors.textMuted,
   },
   chatContent: {
     flex: 1,
     overflow: 'hidden',
   },
-}
-
-if (typeof document !== 'undefined') {
-  const style = document.createElement('style')
-  style.textContent = `
-    @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-  `
-  document.head.appendChild(style)
 }

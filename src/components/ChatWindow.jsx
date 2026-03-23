@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../supabaseClient'
+import { colors } from '../styles/colors'
 
 export default function ChatWindow({ partnership, currentUser, partner }) {
   const [messages, setMessages] = useState([])
@@ -9,7 +10,6 @@ export default function ChatWindow({ partnership, currentUser, partner }) {
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
 
-  // Scroll to bottom of messages
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
@@ -23,7 +23,6 @@ export default function ChatWindow({ partnership, currentUser, partner }) {
     async function getOrCreateConversation() {
       if (!partnership) return
 
-      // Check if conversation exists
       const { data: existingConv, error: convError } = await supabase
         .from('conversations')
         .select('id')
@@ -38,7 +37,6 @@ export default function ChatWindow({ partnership, currentUser, partner }) {
       if (existingConv) {
         setConversationId(existingConv.id)
       } else {
-        // Create new conversation
         const { data: newConv, error: createError } = await supabase
           .from('conversations')
           .insert({ partnership_id: partnership.id })
@@ -56,7 +54,7 @@ export default function ChatWindow({ partnership, currentUser, partner }) {
     getOrCreateConversation()
   }, [partnership])
 
-  // Load messages
+  // Load messages and subscribe
   useEffect(() => {
     if (!conversationId) return
 
@@ -71,8 +69,7 @@ export default function ChatWindow({ partnership, currentUser, partner }) {
         console.error('Error loading messages:', error)
       } else {
         setMessages(data)
-        
-        // Mark messages as read
+
         const unreadMessages = data.filter(m => !m.is_read && m.sender_id !== currentUser.id)
         if (unreadMessages.length > 0) {
           await supabase
@@ -85,7 +82,6 @@ export default function ChatWindow({ partnership, currentUser, partner }) {
 
     loadMessages()
 
-    // Subscribe to new messages
     const subscription = supabase
       .channel(`messages:${conversationId}`)
       .on(
@@ -98,7 +94,6 @@ export default function ChatWindow({ partnership, currentUser, partner }) {
         },
         (payload) => {
           setMessages(prev => [...prev, payload.new])
-          // Mark as read if it's from partner
           if (payload.new.sender_id !== currentUser.id) {
             supabase
               .from('messages')
@@ -114,7 +109,6 @@ export default function ChatWindow({ partnership, currentUser, partner }) {
     }
   }, [conversationId, currentUser.id])
 
-  // Send message
   const sendMessage = async (e) => {
     e.preventDefault()
     if (!newMessage.trim() || !conversationId) return
@@ -137,12 +131,11 @@ export default function ChatWindow({ partnership, currentUser, partner }) {
     setLoading(false)
   }
 
-  // Format time
   const formatTime = (timestamp) => {
     const date = new Date(timestamp)
     const now = new Date()
     const diff = now - date
-    
+
     if (diff < 60000) return 'just now'
     if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`
     if (diff < 86400000) return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -151,7 +144,6 @@ export default function ChatWindow({ partnership, currentUser, partner }) {
 
   return (
     <div style={styles.container}>
-      {/* Chat Header */}
       <div style={styles.header}>
         <div style={styles.partnerInfo}>
           <div style={styles.partnerAvatar}>
@@ -159,12 +151,10 @@ export default function ChatWindow({ partnership, currentUser, partner }) {
           </div>
           <div>
             <div style={styles.partnerName}>{partner?.full_name || 'Partner'}</div>
-            <div style={styles.partnerStatus}>online</div>
           </div>
         </div>
       </div>
 
-      {/* Messages Area */}
       <div style={styles.messagesArea}>
         {messages.length === 0 ? (
           <div style={styles.emptyState}>
@@ -198,7 +188,6 @@ export default function ChatWindow({ partnership, currentUser, partner }) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Message Input */}
       <form style={styles.inputArea} onSubmit={sendMessage}>
         <input
           ref={inputRef}
@@ -226,11 +215,11 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     height: '100%',
-    background: '#faf7f2',
+    background: colors.bg,
   },
   header: {
     padding: '16px 24px',
-    borderBottom: '1px solid #e0d8cc',
+    borderBottom: `1px solid ${colors.border}`,
     background: '#fff',
   },
   partnerInfo: {
@@ -242,7 +231,7 @@ const styles = {
     width: 40,
     height: 40,
     borderRadius: '50%',
-    background: '#8b1a2e',
+    background: colors.primary,
     color: '#fff',
     display: 'flex',
     alignItems: 'center',
@@ -253,11 +242,7 @@ const styles = {
   partnerName: {
     fontSize: 16,
     fontWeight: 700,
-    color: '#2d2416',
-  },
-  partnerStatus: {
-    fontSize: 12,
-    color: '#4a7c6f',
+    color: colors.text,
   },
   messagesArea: {
     flex: 1,
@@ -270,7 +255,7 @@ const styles = {
   emptyState: {
     textAlign: 'center',
     padding: '40px 20px',
-    color: '#9b8c7e',
+    color: colors.textMuted,
   },
   emptyEmoji: {
     fontSize: 48,
@@ -288,15 +273,15 @@ const styles = {
     position: 'relative',
   },
   ownBubble: {
-    background: '#8b1a2e',
+    background: colors.primary,
     color: '#fff',
     borderBottomRightRadius: 4,
   },
   partnerBubble: {
     background: '#fff',
-    color: '#2d2416',
+    color: colors.text,
     borderBottomLeftRadius: 4,
-    border: '1px solid #e0d8cc',
+    border: `1px solid ${colors.border}`,
   },
   messageText: {
     fontSize: 14,
@@ -312,24 +297,24 @@ const styles = {
   inputArea: {
     display: 'flex',
     padding: '16px 24px',
-    borderTop: '1px solid #e0d8cc',
+    borderTop: `1px solid ${colors.border}`,
     background: '#fff',
     gap: 12,
   },
   input: {
     flex: 1,
     padding: '12px 16px',
-    border: '1px solid #e0d8cc',
+    border: `1px solid ${colors.border}`,
     borderRadius: 24,
     fontSize: 14,
-    background: '#faf7f2',
+    background: colors.bg,
     outline: 'none',
   },
   sendButton: {
     width: 44,
     height: 44,
     borderRadius: '50%',
-    background: '#8b1a2e',
+    background: colors.primary,
     color: '#fff',
     border: 'none',
     fontSize: 18,

@@ -1,38 +1,26 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { GOALS } from '../types/goals'
+import { colors } from '../styles/colors'
+import { shared } from '../styles/shared'
 
 export default function GoalSelect() {
   const navigate = useNavigate()
   const [selected, setSelected] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
 
-  async function handleContinue() {
+  function handleContinue() {
     if (!selected) return
-
-    setLoading(true)
-    setError('')
-
-    try {
-      localStorage.setItem('rul_goal', selected)
-      navigate('/collateral')
-
-    } catch (error) {
-      console.error('Error saving goal:', error)
-      setError(error.message || 'Failed to save your goal. Please try again.')
-    } finally {
-      setLoading(false)
-    }
+    localStorage.setItem('rul_goal', selected)
+    navigate('/collateral')
   }
 
   return (
-    <div style={styles.screen}>
+    <div style={shared.screen}>
       <div style={styles.topBar}>
         <div style={styles.stepInfo}>
           <span style={styles.stepLabel}>step 1 of 3</span>
-          <div style={styles.progressTrack}>
-            <div style={{ ...styles.progressFill, width: '33%' }} />
+          <div style={shared.progressTrack}>
+            <div style={{ ...shared.progressFill, width: '33%' }} />
           </div>
         </div>
       </div>
@@ -40,14 +28,14 @@ export default function GoalSelect() {
       <div style={styles.content}>
         <div style={styles.header}>
           <h1 style={styles.title}>What are you working on?</h1>
-          <div style={styles.accentLine} />
+          <div style={shared.accentLine} />
           <p style={styles.sub}>pick a goal to work on daily</p>
         </div>
 
-        <div style={styles.sectionDivider}>
-          <span style={styles.bullet}>•</span>
-          <span style={styles.sectionLabel}>choose your focus</span>
-          <div style={styles.dividerLine} />
+        <div style={shared.sectionDivider}>
+          <span style={shared.bullet}>•</span>
+          <span style={shared.sectionLabel}>choose your focus</span>
+          <div style={shared.dividerLine} />
         </div>
 
         <div style={styles.list}>
@@ -58,13 +46,12 @@ export default function GoalSelect() {
                 key={g.id}
                 style={{ ...styles.item, ...(isSelected ? styles.itemActive : {}) }}
                 onClick={() => setSelected(g.id)}
-                disabled={loading}
               >
-                <span style={{ ...styles.itemSymbol, color: isSelected ? '#8b1a2e' : '#c8bfb0' }}>
+                <span style={{ ...styles.itemSymbol, color: isSelected ? colors.primary : colors.borderSubtle }}>
                   {isSelected ? '●' : '○'}
                 </span>
                 <div style={styles.itemText}>
-                  <span style={{ ...styles.itemLabel, color: isSelected ? '#2d2416' : '#4a3f35' }}>
+                  <span style={{ ...styles.itemLabel, color: isSelected ? colors.text : colors.textBodyDark }}>
                     {g.label}
                   </span>
                   <span style={styles.itemDesc}>{g.desc}</span>
@@ -73,28 +60,20 @@ export default function GoalSelect() {
             )
           })}
         </div>
-
-        { /*error message*/ }
-        {error && (
-          <div style={styles.errorMessage}>
-            <span style={styles.errorIcon}>⚠️</span>
-            <span style={styles.errorText}>{error}</span>
-          </div>
-        )}
       </div>
 
-      <div style={styles.footer}>
-        <div style={styles.footerLine} />
-        <div style={styles.footerInner}>
-          <span style={styles.footerNote}>
+      <div style={shared.footer}>
+        <div style={shared.footerLine} />
+        <div style={shared.footerInner}>
+          <span style={shared.footerNote}>
             {selected ? `✓ selected: ${GOALS.find(g => g.id === selected)?.label}` : 'nothing selected yet'}
           </span>
           <button
-            style={{ ...styles.btn, opacity: (selected && !loading) ? 1 : 0.35 }}
+            style={{ ...styles.btn, opacity: selected ? 1 : 0.35 }}
             onClick={handleContinue}
-            disabled={!selected || loading}
+            disabled={!selected}
           >
-            {loading ? 'saving...' : 'continue →'}
+            continue →
           </button>
         </div>
       </div>
@@ -103,16 +82,9 @@ export default function GoalSelect() {
 }
 
 const styles = {
-  screen: {
-    minHeight: '100vh',
-    background: '#faf7f2',
-    display: 'flex',
-    flexDirection: 'column',
-    paddingLeft: 6,
-  },
   topBar: {
     padding: '20px 52px 16px',
-    borderBottom: '1px solid #e0d8cc',
+    borderBottom: `1px solid ${colors.border}`,
   },
   stepInfo: {
     display: 'flex',
@@ -121,20 +93,8 @@ const styles = {
   },
   stepLabel: {
     fontSize: 14,
-    color: '#8b1a2e',
+    color: colors.primary,
     fontStyle: 'italic',
-  },
-  progressTrack: {
-    height: 2,
-    background: '#e0d8cc',
-    borderRadius: 1,
-    overflow: 'hidden',
-    maxWidth: 200,
-  },
-  progressFill: {
-    height: '100%',
-    background: '#8b1a2e',
-    transition: 'width 0.3s',
   },
   content: {
     flex: 1,
@@ -143,54 +103,17 @@ const styles = {
   header: {
     marginBottom: 32,
   },
-  headerLabel: {
-    fontSize: 11,
-    color: '#9b8c7e',
-    letterSpacing: '2.5px',
-    fontFamily: '-apple-system, sans-serif',
-    fontWeight: 600,
-    textTransform: 'uppercase',
-    marginBottom: 8,
-  },
   title: {
-    color: '#2d2416',
+    color: colors.text,
     fontSize: 40,
     fontWeight: 700,
     lineHeight: 1.1,
     marginBottom: 12,
   },
-  accentLine: {
-    width: 48,
-    height: 3,
-    background: '#8b1a2e',
-    marginBottom: 10,
-  },
   sub: {
-    color: '#6b5d4e',
+    color: colors.textBody,
     fontSize: 18,
     fontStyle: 'italic',
-  },
-  sectionDivider: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 20,
-  },
-  bullet: {
-    color: '#8b1a2e',
-    fontSize: 18,
-    flexShrink: 0,
-  },
-  sectionLabel: {
-    color: '#6b5d4e',
-    fontSize: 16,
-    fontStyle: 'italic',
-    flexShrink: 0,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    background: '#e0d8cc',
   },
   list: {
     display: 'flex',
@@ -204,14 +127,14 @@ const styles = {
     padding: '14px 16px',
     background: 'transparent',
     border: 'none',
-    borderBottom: '1px solid #f0ece4',
+    borderBottom: `1px solid ${colors.borderLight}`,
     textAlign: 'left',
     cursor: 'pointer',
     transition: 'background 0.15s',
     width: '100%',
   },
   itemActive: {
-    background: '#f5ede8',
+    background: colors.warningBg,
   },
   itemSymbol: {
     fontSize: 22,
@@ -231,61 +154,18 @@ const styles = {
   },
   itemDesc: {
     fontSize: 16,
-    color: '#9b8c7e',
-    fontStyle: 'italic',
-  },
-  footer: {
-    position: 'fixed',
-    bottom: 0,
-    left: '50%',
-    transform: 'translateX(-50%)',
-    width: '100%',
-    maxWidth: 720,
-    paddingLeft: 6,
-    background: '#faf7f2',
-  },
-  footerLine: {
-    height: 1,
-    background: '#e0d8cc',
-  },
-  footerInner: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '16px 52px 24px',
-  },
-  footerNote: {
-    color: '#9b8c7e',
-    fontSize: 17,
+    color: colors.textMuted,
     fontStyle: 'italic',
   },
   btn: {
     padding: '10px 28px',
-    border: '2px solid #2d2416',
-    background: '#2d2416',
-    color: '#faf7f2',
+    border: `2px solid ${colors.text}`,
+    background: colors.text,
+    color: colors.bg,
     fontSize: 20,
     fontWeight: 700,
     borderRadius: 2,
     cursor: 'pointer',
     transition: 'opacity 0.2s',
-  },
-  errorMessage: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '12px 16px',
-    marginTop: '20px',
-    background: '#fff5f5',
-    borderLeft: '4px solid #8b1a2e',
-  },
-  errorIcon: {
-    fontSize: '16px',
-  },
-  errorText: {
-    color: '#8b1a2e',
-    fontSize: '13px',
-    flex: 1,
-    fontFamily: '-apple-system, sans-serif',
   },
 }

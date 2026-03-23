@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import confetti from 'canvas-confetti'
+import { colors } from '../styles/colors'
 
 export default function CheckInButton({ onCheckIn, alreadyCheckedIn }) {
   const [pressing, setPressing] = useState(false)
@@ -11,7 +12,7 @@ export default function CheckInButton({ onCheckIn, alreadyCheckedIn }) {
       particleCount: 100,
       spread: 70,
       origin: { y: 0.6 },
-      colors: ['#8b1a2e', '#c8bfb0', '#faf7f2', '#4a7c6f'],
+      colors: [colors.primary, colors.borderSubtle, colors.bg, colors.success],
     })
     setTimeout(() => {
       confetti({
@@ -19,7 +20,7 @@ export default function CheckInButton({ onCheckIn, alreadyCheckedIn }) {
         angle: 60,
         spread: 50,
         origin: { x: 0 },
-        colors: ['#8b1a2e', '#c8bfb0'],
+        colors: [colors.primary, colors.borderSubtle],
       })
     }, 200)
     setTimeout(() => {
@@ -28,7 +29,7 @@ export default function CheckInButton({ onCheckIn, alreadyCheckedIn }) {
         angle: 120,
         spread: 50,
         origin: { x: 1 },
-        colors: ['#8b1a2e', '#c8bfb0'],
+        colors: [colors.primary, colors.borderSubtle],
       })
     }, 350)
 
@@ -44,7 +45,7 @@ export default function CheckInButton({ onCheckIn, alreadyCheckedIn }) {
           <div style={styles.doneInner} />
         </div>
         <p style={styles.doneLabel}>checked in</p>
-        <p style={styles.doneNote}>your partner has been notified</p>
+        <p style={styles.doneNote}>great work — keep the streak going</p>
       </div>
     )
   }
@@ -78,15 +79,15 @@ const styles = {
   },
   prompt: {
     fontSize: 17,
-    color: '#9b8c7e',
+    color: colors.textMuted,
     fontStyle: 'italic',
   },
   bigCircle: {
     width: 148,
     height: 148,
     borderRadius: '50%',
-    border: '3px solid #2d2416',
-    background: '#faf7f2',
+    border: `3px solid ${colors.text}`,
+    background: colors.bg,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -95,17 +96,17 @@ const styles = {
     cursor: 'pointer',
     willChange: 'transform',
     position: 'relative',
-    boxShadow: '2px 3px 0 #2d2416',
+    boxShadow: `2px 3px 0 ${colors.text}`,
   },
   circleInner: {
     width: 30,
     height: 30,
     borderRadius: '50%',
-    border: '2.5px solid #2d2416',
+    border: `2.5px solid ${colors.text}`,
     background: 'transparent',
   },
   circleLabel: {
-    color: '#2d2416',
+    color: colors.text,
     fontSize: 14,
     fontWeight: 700,
     letterSpacing: '1.5px',
@@ -113,15 +114,15 @@ const styles = {
   },
   hint: {
     fontSize: 14,
-    color: '#c8bfb0',
+    color: colors.borderSubtle,
     fontStyle: 'italic',
   },
   doneCircle: {
     width: 148,
     height: 148,
     borderRadius: '50%',
-    border: '3px solid #4a7c6f',
-    background: '#4a7c6f',
+    border: `3px solid ${colors.success}`,
+    background: colors.success,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -131,16 +132,16 @@ const styles = {
     width: 36,
     height: 36,
     borderRadius: '50%',
-    background: '#faf7f2',
+    background: colors.bg,
   },
   doneLabel: {
     fontSize: 22,
     fontWeight: 700,
-    color: '#4a7c6f',
+    color: colors.success,
   },
   doneNote: {
     fontSize: 16,
-    color: '#9b8c7e',
+    color: colors.textMuted,
     fontStyle: 'italic',
   },
 }
