@@ -5,7 +5,7 @@ import GoalSelect from './pages/GoalSelect'
 import CollateralSelect from './pages/CollateralSelect'
 import Matching from './pages/Matching'
 import Dashboard from './pages/Dashboard'
-import CollateralOwed from './pages/CollateralOwed'
+//import CollateralOwed from './pages/CollateralOwed'
 
 export default function App() {
   return (
@@ -17,7 +17,6 @@ export default function App() {
         <Route path="/collateral" element={<CollateralSelect />} />
         <Route path="/matching" element={<Matching />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/collateral-owed" element={<CollateralOwed />} />
       </Routes>
     </BrowserRouter>
   )
