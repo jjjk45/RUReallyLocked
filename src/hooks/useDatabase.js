@@ -1,8 +1,6 @@
 import { supabase } from '../supabaseClient'
 
 export function useDatabase() {
-
-  // Create user profile after signup
   const createProfile = async (userId, userData) => {
     const { data, error } = await supabase
       .from('profiles')
@@ -20,7 +18,6 @@ export function useDatabase() {
     return data[0]
   }
 
-  // Save user's goal and collateral
   const saveGoal = async (userId, goalType, collateralType) => {
     const { data, error } = await supabase
       .from('goals')

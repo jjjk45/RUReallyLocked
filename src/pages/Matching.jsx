@@ -9,7 +9,7 @@ export default function Matching() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { findPotentialPartners, createPartnership } = useDatabase()
-  const [phase, setPhase] = useState('loading')
+  const [phase, setPhase] = useState('matched') //loading is default
   const [cardIndex, setCardIndex] = useState(0)
   const [slideDir, setSlideDir] = useState(null)
   const [isAnimating, setIsAnimating] = useState(false)
@@ -24,12 +24,12 @@ export default function Matching() {
     async function loadPartners() {
       if (!user) return
       try {
-        setLoading(true)
-        const partners = await findPotentialPartners(user.id, goal)
+        setLoading(true) //redundant?
+        const partners = await findPotentialPartners(user.id, goal) //an array of partners
         const formattedProfiles = partners.map(p => ({
           name: p.profiles?.full_name || 'Anonymous',
           year: p.profiles?.year || 'Unknown',
-          school: p.profiles?.school || 'School of Arts and Sciences',
+          school: p.profiles?.school || 'Unknown',
           major: p.profiles?.major || 'Undeclared',
           collateral: COLLATERAL_LABELS[p.collateral_type] || 'Unknown',
           bio: p.profiles?.bio || `Working on ${goalInfo} and looking for accountability!`,
@@ -91,7 +91,7 @@ export default function Matching() {
       <div style={styles.loadingScreen}>
         <div style={styles.loadingInner}>
           <div style={styles.spinner} />
-          <p style={styles.loadingLabel}>searching for your match</p>
+          <p style={styles.loadingLabel}>searching profiles</p>
           <p style={styles.loadingGoal}>goal: <em>{goalInfo}</em></p>
           <div style={styles.dots}>
             <Dot delay={0} />
@@ -149,7 +149,7 @@ export default function Matching() {
 
           <div style={styles.avatarsRow}>
             <div style={styles.avatarBox}>you</div>
-            <span style={styles.heartSym}>♥</span>
+            <div style={styles.vsEmoji}>🤝</div>
             <div style={styles.avatarBox}>{profile?.name?.split(' ')[0]}</div>
           </div>
 
@@ -391,7 +391,8 @@ export default function Matching() {
   avatarsRow: {
     display: 'flex',
     alignItems: 'center',
-    gap: 16,
+    justifyContent: 'center',
+    gap: 20,
     margin: '8px 0',
   },
   avatarBox: {
@@ -402,9 +403,10 @@ export default function Matching() {
     fontWeight: 700,
     borderRadius: 2,
   },
-  heartSym: {
-    color: '#8b1a2e',
-    fontSize: 28,
+  vsEmoji: {
+    fontSize: 52,
+    lineHeight: 1,
+    userSelect: 'none',
   },
   matchDetails: {
     borderTop: '1px solid #e0d8cc',

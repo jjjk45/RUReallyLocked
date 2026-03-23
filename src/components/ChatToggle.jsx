@@ -101,7 +101,6 @@ const styles = {
     padding: '2px 6px',
     borderRadius: '12px',
   },
-  // ========== ADDED HERE: Unread badge style ==========
   unreadBadge: {
     position: 'absolute',
     top: '-5px',
@@ -158,7 +157,6 @@ const styles = {
   },
 }
 
-// Add animation to your global CSS or style tag
 if (typeof document !== 'undefined') {
   const style = document.createElement('style')
   style.textContent = `
