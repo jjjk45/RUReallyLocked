@@ -10,6 +10,7 @@ export function useDatabase() {
         full_name: userData.full_name,
         email: userData.email,
         school: userData.school,
+        major: userData.major,
         year: userData.year,
         bio: userData.bio
       }])

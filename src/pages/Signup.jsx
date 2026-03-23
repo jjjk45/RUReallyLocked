@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useDatabase } from '../hooks/useDatabase'
 import { colors } from '../styles/colors'
 import { shared } from '../styles/shared'
+import { SCHOOLS } from '../types/schools'
 
 export default function Signup() {
   const navigate = useNavigate()
@@ -14,6 +15,7 @@ export default function Signup() {
     email: '',
     password: '',
     school: '',
+    major: '',
     year: '',
     bio: ''
   })
@@ -33,6 +35,7 @@ export default function Signup() {
       const { user } = await signUp(form.email, form.password, {
         full_name: form.full_name,
         school: form.school,
+        major: form.major,
         year: form.year,
         bio: form.bio
       })
@@ -43,6 +46,7 @@ export default function Signup() {
         full_name: form.full_name,
         email: form.email,
         school: form.school,
+        major: form.major,
         year: form.year,
         bio: form.bio
       })
@@ -66,8 +70,9 @@ export default function Signup() {
         <form style={styles.form} onSubmit={handleSubmit}>
           {[
             { name: 'full_name', label: 'full name', type: 'text', placeholder: 'firstname lastname' },
-            { name: 'email',     label: 'email',     type: 'email',    placeholder: 'abc123@scarletmail.rutgers.edu' },
-            { name: 'password',  label: 'password',  type: 'password', placeholder: 'at least 8 characters' },
+            { name: 'email', label: 'email', type: 'email', placeholder: 'abc123@scarletmail.rutgers.edu' },
+            { name: 'password', label: 'password',  type: 'password', placeholder: 'at least 6 characters' },
+            { name: 'major', label: 'major', type: 'text', placeholder: 'e.g. Computer Science' },
           ].map(field => (
             <div key={field.name} style={shared.inputGroup}>
               <label style={shared.label}>{field.label}</label>
@@ -94,18 +99,7 @@ export default function Signup() {
               required
             >
               <option value="" disabled>select your school</option>
-              <option>School of Arts and Sciences</option>
-              <option>School of Engineering</option>
-              <option>Rutgers Business School</option>
-              <option>School of Pharmacy</option>
-              <option>School of Nursing</option>
-              <option>School of Communication and Information</option>
-              <option>School of Environmental and Biological Sciences</option>
-              <option>School of Public Health</option>
-              <option>School of Social Work</option>
-              <option>School of Education</option>
-              <option>Ernest Mario School of Pharmacy</option>
-              <option>Mason Gross School of the Arts</option>
+              {SCHOOLS.map(s => <option key={s}>{s}</option>)}
             </select>
             <div style={shared.inputLine} />
           </div>
