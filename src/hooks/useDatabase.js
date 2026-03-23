@@ -1,4 +1,5 @@
 import { supabase } from '../supabaseClient'
+import { toLocalDateStr } from '../utils/localDateUtil'
 
 export function useDatabase() {
   const createProfile = async (userId, userData) => {
@@ -82,7 +83,7 @@ export function useDatabase() {
   }
 
   const recordCheckIn = async (partnershipId, userId) => {
-    const today = new Date().toISOString().split('T')[0]
+    const today = toLocalDateStr()
 
     const { data: existing } = await supabase
       .from('check_ins')
@@ -144,7 +145,7 @@ export function useDatabase() {
     if (!data || data.length === 0) return 0
 
     let streak = 0
-    const today = new Date().toISOString().split('T')[0]
+    const today = toLocalDateStr()
     let currentDate = new Date(today)
 
     for (let i = 0; i < data.length; i++) {
@@ -237,7 +238,7 @@ export function useDatabase() {
   const checkMissedCheckIns = async (partnershipId, userId, daysAgo = 1) => {
     const date = new Date()
     date.setDate(date.getDate() - daysAgo)
-    const dateStr = date.toISOString().split('T')[0]
+    const dateStr = toLocalDateStr(date)
 
     const { data: checkIn } = await supabase
       .from('check_ins')

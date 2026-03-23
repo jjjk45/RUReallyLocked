@@ -45,7 +45,6 @@ export default function CheckInButton({ onCheckIn, alreadyCheckedIn }) {
           <div style={styles.doneInner} />
         </div>
         <p style={styles.doneLabel}>checked in</p>
-        <p style={styles.doneNote}>great work — keep the streak going</p>
       </div>
     )
   }

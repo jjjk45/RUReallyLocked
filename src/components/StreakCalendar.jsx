@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { colors } from '../styles/colors'
+import { toLocalDateStr } from '../utils/localDateUtil'
 
 export default function StreakCalendar({ checkIns = [] }) {
   const [hoveredDay, setHoveredDay] = useState(null)
   const today = new Date()
-  const todayISO = today.toISOString().split('T')[0]
+  const todayISO = toLocalDateStr(today)
 
   const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
   const lastOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0)
@@ -32,7 +33,7 @@ export default function StreakCalendar({ checkIns = [] }) {
     weeks.push(days.slice(w * 7, w * 7 + 7))
   }
 
-  const toISO = (d) => d.toISOString().split('T')[0]
+  const toISO = (d) => toLocalDateStr(d)
   const checkedSet = new Set(checkIns)
 
   const DAY_LABELS = ['Su', 'M', 'Tu', 'W', 'Th', 'F', 'Sa']

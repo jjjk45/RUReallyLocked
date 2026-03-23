@@ -29,7 +29,7 @@ export default function GoalSelect() {
         <div style={styles.header}>
           <h1 style={styles.title}>What are you working on?</h1>
           <div style={shared.accentLine} />
-          <p style={styles.sub}>pick a goal to work on daily</p>
+            <p style={styles.sub}>pick a goal to work on daily</p>
         </div>
 
         <div style={shared.sectionDivider}>

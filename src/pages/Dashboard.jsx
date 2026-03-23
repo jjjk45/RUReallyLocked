@@ -11,6 +11,7 @@ import { GOAL_LABELS } from '../types/goals'
 import { COLLATERAL_LABELS, COLLATERAL_EMOJIS } from '../types/collaterals'
 import { colors } from '../styles/colors'
 import { shared } from '../styles/shared'
+import { toLocalDateStr } from '../utils/localDateUtil'
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -64,7 +65,7 @@ export default function Dashboard() {
           const history = await getCheckInHistory(activePartnership.id, user.id)
           setCheckInHistory(history)
 
-          const todayStr = new Date().toISOString().split('T')[0]
+          const todayStr = toLocalDateStr()
           const todayCheckIn = history.find(h => h.date === todayStr)
           setCheckedIn(!!todayCheckIn)
 
