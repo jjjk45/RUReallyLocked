@@ -237,7 +237,7 @@ export default function Dashboard() {
         <section style={styles.section}>
           <div style={styles.sectionHead}>
             <span style={styles.sectionBullet}>•</span>
-            <span style={styles.sectionTitle}>calendar</span>
+            <span style={styles.sectionTitle}>your check-in calendar</span>
             <div style={styles.sectionLine} />
           </div>
           <StreakCalendar checkIns={checkInHistory.map(h => h.date)} />

@@ -51,7 +51,6 @@ export default function CheckInButton({ onCheckIn, alreadyCheckedIn }) {
 
   return (
     <div style={styles.wrap}>
-      <p style={styles.prompt}>tap to mark today's check-in</p>
       <button
         style={{
           ...styles.bigCircle,
@@ -63,7 +62,6 @@ export default function CheckInButton({ onCheckIn, alreadyCheckedIn }) {
         <div style={styles.circleInner} />
         <span style={styles.circleLabel}>CHECK IN</span>
       </button>
-      <p style={styles.hint}>tap within your check-in window</p>
     </div>
   )
 }
@@ -82,8 +80,8 @@ const styles = {
     fontStyle: 'italic',
   },
   bigCircle: {
-    width: 148,
-    height: 148,
+    width: 180,
+    height: 180,
     borderRadius: '50%',
     border: `3px solid ${colors.text}`,
     background: colors.bg,
@@ -98,8 +96,8 @@ const styles = {
     boxShadow: `2px 3px 0 ${colors.text}`,
   },
   circleInner: {
-    width: 30,
-    height: 30,
+    width: 40,
+    height: 40,
     borderRadius: '50%',
     border: `2.5px solid ${colors.text}`,
     background: 'transparent',
